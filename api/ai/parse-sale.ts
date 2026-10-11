@@ -1,5 +1,7 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
-import { handleParseSale } from '../../shared/parseSaleService';
+// مهم: الاستيرادات النسبية داخل مجلد api/ يجب أن تنتهي بـ .js صراحةً
+// (البناء على Vercel يُخرج ESM، والـ import بدون امتداد يفشل وقت التحميل).
+import { handleParseSale } from '../../shared/parseSaleService.js';
 
 /**
  * POST /api/ai/parse-sale — محلل اللهجة السودانية لطلبات البيع (Vercel Serverless Function).

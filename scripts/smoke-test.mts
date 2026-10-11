@@ -1,9 +1,9 @@
 /** Smoke test — يتحقق من محرك اللهجة ودوال الـ API قبل الرفع. */
-import { parseWithSudaneseRules } from '../shared/parseWithSudaneseRules';
-import { handleParseSale } from '../shared/parseSaleService';
-import parseSaleHandler from '../api/ai/parse-sale';
-import healthHandler from '../api/health';
-import emailHandler from '../api/notifications/email/send';
+import { parseWithSudaneseRules } from '../shared/parseWithSudaneseRules.js';
+import { handleParseSale } from '../shared/parseSaleService.js';
+import parseSaleHandler from '../api/ai/parse-sale.js';
+import healthHandler from '../api/health.js';
+import emailHandler from '../api/notifications/email/send.js';
 
 const inventory = [
   {

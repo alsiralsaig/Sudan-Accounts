@@ -7,7 +7,7 @@
 import express from 'express';
 import dotenv from 'dotenv';
 import path from 'path';
-import { handleParseSale } from './shared/parseSaleService';
+import { handleParseSale } from './shared/parseSaleService.js';
 
 dotenv.config();
 
