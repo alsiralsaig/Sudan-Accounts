@@ -7,7 +7,7 @@
  * ملاحظة: استيراد @google/genai يتم ديناميكياً (lazy) عند الحاجة فقط —
  * المكتبة ESM-only وقد يفشل تحميلها في بيئات CJS، والمحرك المحلي يلتقط ذلك.
  */
-import { parseWithSudaneseRules } from './parseWithSudaneseRules';
+import { parseWithSudaneseRules } from './parseWithSudaneseRules.js';
 
 export interface ParseSaleInput {
   speechText: string;
