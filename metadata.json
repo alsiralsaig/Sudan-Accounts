@@ -1,0 +1,6 @@
+{
+  "name": "حساباتي السودان - المحاسب الذكي ونقاط البيع بالصوت",
+  "description": "منصة محاسبية ذكية ونقاط بيع للمتاجر والأنشطة التجارية في السودان مع مساعد صوتي يفهم اللهجة المحلية وإدارة المخزون والوحدات السودانية.",
+  "requestFramePermissions": ["microphone", "camera"],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
