@@ -54,6 +54,10 @@ check('يكتشف اسم العميل', r3.customerName === 'عمر', r3.custome
 const r4 = await handleParseSale({ speechText: 'بعت اتنين كيلو سكر', inventoryItems: inventory }, { geminiApiKey: '' });
 check('بدون مفتاح يعمل المحرك المحلي', r4.source === 'rule_engine' && r4.recognizedItems.length === 1, r4.source);
 
+// 6) مع مفتاح غير صالح → fallback مهذب (لا يسقط)
+const r5 = await handleParseSale({ speechText: 'بعت اتنين كيلو سكر', inventoryItems: inventory }, { geminiApiKey: 'invalid-key-for-test', geminiModel: 'gemini-3.8-flash' });
+check('مفتاح غير صالح → fallback آمن', r5.source === 'rule_engine_after_error' && r5.recognizedItems.length === 1, r5);
+
 // 5) دالة Vercel: health
 function mockRes() {
   const r: any = { statusCode: 0, body: null };

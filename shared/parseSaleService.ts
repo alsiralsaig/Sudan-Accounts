@@ -3,8 +3,10 @@
  * 1) المحرك اللغوي المحلي (Rule-Based) — يعمل دائماً كاحتياط.
  * 2) Gemini AI عند توفر مفتاح API — مع عودة تلقائية للمحرك عند أي خطأ.
  * تُستخدم من server.ts (تطوير محلي) و api/ai/parse-sale.ts (Vercel Serverless).
+ *
+ * ملاحظة: استيراد @google/genai يتم ديناميكياً (lazy) عند الحاجة فقط —
+ * المكتبة ESM-only وقد يفشل تحميلها في بيئات CJS، والمحرك المحلي يلتقط ذلك.
  */
-import { GoogleGenAI } from '@google/genai';
 import { parseWithSudaneseRules } from './parseWithSudaneseRules';
 
 export interface ParseSaleInput {
@@ -64,6 +66,8 @@ export async function handleParseSale(
   }
 
   try {
+    // استيراد ديناميكي: يحمّل المكتبة (ESM) فقط عند الحاجة، وأي فشل يتحول للاحتياطي
+    const { GoogleGenAI } = await import('@google/genai');
     const aiClient = new GoogleGenAI({ apiKey });
 
     const inventorySummary = (inventoryItems || []).map((item: any) => ({
