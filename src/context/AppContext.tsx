@@ -19,10 +19,6 @@ import {
   SentEmailLog,
   VatSettings,
   MonthlyTaxReportSummary,
-  CustomerCreditAccount,
-  CustomerCreditTransaction,
-  Supplier,
-  PurchaseInvoice,
 } from '../types';
 import {
   SpeechSettings,
@@ -43,10 +39,6 @@ import {
   INITIAL_EXPENSES,
   INITIAL_AUDIT_LOGS,
   INITIAL_MOVEMENTS,
-  INITIAL_CUSTOMERS,
-  INITIAL_CUSTOMER_TRANSACTIONS,
-  INITIAL_SUPPLIERS,
-  INITIAL_PURCHASE_INVOICES,
 } from '../data/initialData';
 
 interface AppContextType {
@@ -163,23 +155,8 @@ interface AppContextType {
   availableTaxPeriods: Array<{ year: number; month: number; periodKey: string; labelAr: string; invoicesCount: number }>;
   exportTaxReportCSV: (report: MonthlyTaxReportSummary) => void;
 
-  // Customer Credit / دفتر الشكك والديون
-  customers: CustomerCreditAccount[];
-  customerTransactions: CustomerCreditTransaction[];
-  addCustomer: (data: Omit<CustomerCreditAccount, 'id' | 'currentBalance' | 'createdAt' | 'status'>) => CustomerCreditAccount;
-  updateCustomer: (customer: CustomerCreditAccount) => void;
-  deleteCustomer: (id: string) => void;
-  recordCustomerPayment: (customerId: string, amount: number, paymentMethod: PaymentMethod, notes?: string, receiptNumber?: string) => boolean;
-  recordCustomerDebt: (customerId: string, amount: number, invoiceId?: string, notes?: string) => boolean;
-
-  // Suppliers & Purchases / سجل الموردين والمشتريات
-  suppliers: Supplier[];
-  purchaseInvoices: PurchaseInvoice[];
-  addSupplier: (data: Omit<Supplier, 'id' | 'currentBalance' | 'totalPurchases' | 'createdAt'>) => Supplier;
-  updateSupplier: (supplier: Supplier) => void;
-  deleteSupplier: (id: string) => void;
-  recordSupplierPayment: (supplierId: string, amount: number, paymentMethod: PaymentMethod, notes?: string) => boolean;
-  createPurchaseInvoice: (data: Omit<PurchaseInvoice, 'id'>) => { success: boolean; invoiceId: string };
+  // ملاحظة: واجهات «دفتر الشكك» و«الموردون والمشتريات» (Customers/Suppliers)
+  // مُعرّفة في src/types/index.ts وستُضاف هنا عند تنفيذها.
 }
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
