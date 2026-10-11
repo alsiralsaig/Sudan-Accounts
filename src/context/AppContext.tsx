@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useState, useEffect, useRef } from 'react';
 import {
   Product,
   UserProfile,
@@ -24,6 +24,7 @@ import {
   SpeechSettings,
   speechAlertService,
 } from '../services/speechAlertService';
+import { isBackupDue } from '../services/backupSchedulerService';
 import {
   DEFAULT_VAT_SETTINGS,
   generateMonthlyTaxReport,
@@ -125,6 +126,7 @@ interface AppContextType {
   databaseSnapshots: DatabaseSnapshot[];
   createDatabaseSnapshot: (title?: string, type?: 'manual' | 'scheduled' | 'pre_restore_checkpoint') => DatabaseSnapshot;
   exportDatabaseAsJSON: () => void;
+  shareBackupViaWhatsApp: () => Promise<{ success: boolean; message: string }>;
   exportDatabaseAsCSV: (tableName?: 'products' | 'invoices' | 'expenses' | 'all') => void;
   restoreDatabaseFromSnapshot: (snapshotId: string) => boolean;
   restoreDatabaseFromJSONString: (jsonContent: string, mode?: 'overwrite' | 'merge') => { success: boolean; message: string; stats?: any };
@@ -234,9 +236,9 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       enabled: true,
       frequency: 'daily',
       timeOfDay: '23:00',
-      lastBackupDate: '2026-10-10 12:00',
-      nextBackupDate: '2026-10-11 23:00',
-      autoDownload: false,
+      lastBackupDate: undefined,
+      nextBackupDate: undefined,
+      autoDownload: true,
       maxSnapshotsToKeep: 10,
     };
   });
@@ -857,16 +859,18 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const updateBackupSchedule = (config: Partial<BackupScheduleConfig>) => {
     setBackupScheduleState((prev) => {
       const updated = { ...prev, ...config };
-      // Calculate next backup date based on frequency
-      const now = new Date();
+      // Calculate next backup date based on frequency (ISO — قابل للقراءة الآلية)
+      const next = new Date();
       if (updated.frequency === 'daily') {
-        now.setDate(now.getDate() + 1);
+        next.setDate(next.getDate() + 1);
       } else if (updated.frequency === 'weekly') {
-        now.setDate(now.getDate() + 7);
+        next.setDate(next.getDate() + 7);
       } else if (updated.frequency === 'monthly') {
-        now.setMonth(now.getMonth() + 1);
+        next.setMonth(next.getMonth() + 1);
       }
-      updated.nextBackupDate = `${now.toISOString().split('T')[0]} ${updated.timeOfDay}`;
+      const [h, m] = (updated.timeOfDay || '23:00').split(':');
+      next.setHours(parseInt(h, 10) || 23, parseInt(m, 10) || 0, 0, 0);
+      updated.nextBackupDate = updated.frequency === 'disabled' ? prev.nextBackupDate : next.toISOString();
       return updated;
     });
     addAuditLog('تعديل جدولة النسخ الاحتياطي', `تحديث وتيرة النسخ الاحتياطي إلى ${config.frequency || backupSchedule.frequency}`);
@@ -931,7 +935,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
     setBackupScheduleState((prev) => ({
       ...prev,
-      lastBackupDate: dateStr,
+      lastBackupDate: now.toISOString(),
     }));
 
     addAuditLog('إنشاء نسخة احتياطية', `تم حفظ نسخة "${snapshot.title}" بحجم ${snapshot.stats.productsCount} صنف و${snapshot.stats.invoicesCount} فاتورة.`);
@@ -939,20 +943,91 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     return snapshot;
   };
 
-  const exportDatabaseAsJSON = () => {
-    const snapshot = createDatabaseSnapshot('تصدير قاعدة البيانات (JSON)');
+  const buildSnapshotFileName = () => `hisabati_database_backup_${new Date().toISOString().slice(0, 10)}.json`;
+
+  const downloadSnapshotFile = (snapshot: DatabaseSnapshot) => {
     const jsonString = JSON.stringify(snapshot, null, 2);
     const blob = new Blob([jsonString], { type: 'application/json;charset=utf-8' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `hisabati_database_backup_${new Date().toISOString().slice(0, 10)}.json`;
+    a.download = buildSnapshotFileName();
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
     URL.revokeObjectURL(url);
+  };
+
+  const exportDatabaseAsJSON = () => {
+    const snapshot = createDatabaseSnapshot('تصدير قاعدة البيانات (JSON)');
+    downloadSnapshotFile(snapshot);
     addAuditLog('تصدير JSON', 'تصدير ملف نسخة احتياطية كاملة للمتجر بصيغة JSON.');
   };
+
+  // مشاركة نسخة احتياطية عبر واتساب (Web Share API مع تنزيل احتياطي)
+  const shareBackupViaWhatsApp = async (): Promise<{ success: boolean; message: string }> => {
+    try {
+      const snapshot = createDatabaseSnapshot('نسخة للمشاركة (واتساب)');
+      const jsonString = JSON.stringify(snapshot, null, 2);
+      const file = new File([jsonString], buildSnapshotFileName(), { type: 'application/json' });
+      const shareText = `نسخة احتياطية من نظام «حساباتي السودان» — ${storeName}\nالتاريخ: ${new Date().toLocaleString('ar-SD')}\nاحتفظ بهذا الملف في مكان آمن 💾`;
+
+      if (typeof navigator !== 'undefined' && navigator.canShare && navigator.canShare({ files: [file] })) {
+        await navigator.share({ files: [file], title: `نسخة احتياطية - ${storeName}`, text: shareText });
+        addAuditLog('مشاركة نسخة احتياطية', 'مشاركة ملف نسخة احتياطية عبر تطبيقات المشاركة (واتساب).');
+        return { success: true, message: 'تم فتح قائمة المشاركة — اختر واتساب لإرسال الملف 🟢' };
+      }
+
+      // Fallback: تنزيل الملف + فتح واتساب مع رسالة إرشادية
+      downloadSnapshotFile(snapshot);
+      window.open(`https://wa.me/?text=${encodeURIComponent(shareText)}`, '_blank', 'noopener');
+      addAuditLog('مشاركة نسخة احتياطية', 'تنزيل ملف النسخة وفتح واتساب لإرساله.');
+      return { success: true, message: 'تم تنزيل الملف — أرسله الآن عبر واتساب من مجلد التنزيلات 📎' };
+    } catch (err: any) {
+      if (err && err.name === 'AbortError') return { success: false, message: 'تم إلغاء المشاركة.' };
+      console.error('WhatsApp share failed:', err);
+      return { success: false, message: `تعذرت المشاركة: ${err?.message || 'خطأ غير معروف'}` };
+    }
+  };
+
+  // --- الجدولة التلقائية الحقيقية: فحص عند الإطلاق وكل ساعة ---
+  const backupEngineRef = useRef<{
+    schedule: BackupScheduleConfig;
+    runScheduled: () => void;
+  }>({ schedule: backupSchedule, runScheduled: () => {} });
+
+  useEffect(() => {
+    backupEngineRef.current.schedule = backupSchedule;
+    backupEngineRef.current.runScheduled = () => {
+      const schedule = backupEngineRef.current.schedule;
+      if (!isBackupDue(schedule)) return;
+      const snapshot = createDatabaseSnapshot(undefined, 'scheduled');
+      if (schedule.autoDownload) {
+        downloadSnapshotFile(snapshot);
+      }
+      addAuditLog(
+        'نسخة احتياطية مجدولة',
+        `تم تنفيذ النسخ الاحتياطي المجدول${schedule.autoDownload ? ' وتنزيل الملف تلقائياً' : ' (محلياً فقط)'}.`
+      );
+    };
+  });
+
+  useEffect(() => {
+    const runCheck = () => {
+      try {
+        backupEngineRef.current.runScheduled();
+      } catch (err) {
+        console.error('Scheduled backup failed:', err);
+      }
+    };
+    // فحص فور فتح التطبيق + كل ساعة
+    const timeoutId = setTimeout(runCheck, 5000);
+    const intervalId = setInterval(runCheck, 60 * 60 * 1000);
+    return () => {
+      clearTimeout(timeoutId);
+      clearInterval(intervalId);
+    };
+  }, []);
 
   const exportDatabaseAsCSV = (tableName: 'products' | 'invoices' | 'expenses' | 'all' = 'products') => {
     const BOM = '\uFEFF'; // UTF-8 Byte Order Mark for Excel Arabic support
@@ -1633,6 +1708,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         databaseSnapshots,
         createDatabaseSnapshot,
         exportDatabaseAsJSON,
+        shareBackupViaWhatsApp,
         exportDatabaseAsCSV,
         restoreDatabaseFromSnapshot,
         restoreDatabaseFromJSONString,

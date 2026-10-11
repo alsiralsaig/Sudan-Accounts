@@ -4,6 +4,7 @@ import { handleParseSale } from '../shared/parseSaleService.js';
 import parseSaleHandler from '../api/ai/parse-sale.js';
 import healthHandler from '../api/health.js';
 import emailHandler from '../api/notifications/email/send.js';
+import { isBackupDue, parseBackupDate, daysSinceBackup, backupAgeLabel } from '../src/services/backupSchedulerService.js';
 
 const inventory = [
   {
@@ -89,6 +90,35 @@ check('GET على parse-sale يرجع 405', ps405.statusCode === 405, ps405.stat
 const em = mockRes();
 emailHandler({ method: 'POST', body: { recipient: 'a@b.com', subject: 'تقرير', type: 'daily_summary', summaryText: 'مبيعات اليوم' } } as any, em);
 check('POST email/send يرجع messageId', em.statusCode === 200 && Boolean(em.body.messageId), em.body);
+
+// 10) خدمة جدولة النسخ الاحتياطي
+const now = new Date('2026-10-11T12:00:00');
+check('parseBackupDate يقرأ ISO', parseBackupDate('2026-10-10T12:00:00') !== null, 'iso');
+check('parseBackupDate يقرأ الصيغة القديمة', parseBackupDate('2026-10-10 12:00') !== null, 'legacy');
+check('parseBackupDate يرفض الفارغ/الخاطئ', parseBackupDate('') === null && parseBackupDate('زبالة') === null, 'bad');
+check(
+  'نسخة لم تحدث قط → مستحقة',
+  isBackupDue({ enabled: true, frequency: 'daily', timeOfDay: '23:00', autoDownload: true, maxSnapshotsToKeep: 10 }, now) === true,
+  'never'
+);
+check(
+  'نسخة اليوم → غير مستحقة (يومي)',
+  isBackupDue({ enabled: true, frequency: 'daily', timeOfDay: '23:00', lastBackupDate: '2026-10-11T09:00:00', autoDownload: true, maxSnapshotsToKeep: 10 }, now) === false,
+  'fresh'
+);
+check(
+  'نسخة من 3 أيام → مستحقة (يومي)',
+  isBackupDue({ enabled: true, frequency: 'daily', timeOfDay: '23:00', lastBackupDate: '2026-10-08T09:00:00', autoDownload: true, maxSnapshotsToKeep: 10 }, now) === true,
+  'stale'
+);
+check(
+  'نسخة من 3 أيام → غير مستحقة (أسبوعي)',
+  isBackupDue({ enabled: true, frequency: 'weekly', timeOfDay: '23:00', lastBackupDate: '2026-10-08T09:00:00', autoDownload: true, maxSnapshotsToKeep: 10 }, now) === false,
+  'weekly'
+);
+check('الجدولة المعطلة لا تُنفَّذ', isBackupDue({ enabled: false, frequency: 'daily', timeOfDay: '23:00', autoDownload: true, maxSnapshotsToKeep: 10 }, now) === false, 'disabled');
+check('daysSinceBackup = 3', daysSinceBackup('2026-10-08T12:00:00', now) === 3, 'days');
+check('backupAgeLabel لا توجد نسخة', backupAgeLabel(undefined, now).includes('لا توجد'), 'label');
 
 console.log(`\nالنتيجة: ${pass} ناجح / ${fail} فاشل`);
 process.exit(fail > 0 ? 1 : 0);

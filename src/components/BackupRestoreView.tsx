@@ -18,9 +18,11 @@ import {
   History,
   RotateCcw,
   Sparkles,
+  Share2,
 } from 'lucide-react';
 import { useApp } from '../context/AppContext';
 import { BackupFrequency, DatabaseSnapshot } from '../types';
+import { formatBackupDate } from '../services/backupSchedulerService';
 
 export const BackupRestoreView: React.FC = () => {
   const {
@@ -29,6 +31,7 @@ export const BackupRestoreView: React.FC = () => {
     databaseSnapshots,
     createDatabaseSnapshot,
     exportDatabaseAsJSON,
+    shareBackupViaWhatsApp,
     exportDatabaseAsCSV,
     restoreDatabaseFromSnapshot,
     restoreDatabaseFromJSONString,
@@ -45,7 +48,9 @@ export const BackupRestoreView: React.FC = () => {
   const [frequency, setFrequency] = useState<BackupFrequency>(backupSchedule.frequency);
   const [timeOfDay, setTimeOfDay] = useState(backupSchedule.timeOfDay || '23:00');
   const [maxSnapshots, setMaxSnapshots] = useState(backupSchedule.maxSnapshotsToKeep || 10);
+  const [autoDownload, setAutoDownload] = useState(backupSchedule.autoDownload);
   const [scheduleSavedMsg, setScheduleSavedMsg] = useState(false);
+  const [shareMsg, setShareMsg] = useState<{ ok: boolean; text: string } | null>(null);
 
   // File Upload & Restore state
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
@@ -67,6 +72,7 @@ export const BackupRestoreView: React.FC = () => {
       frequency,
       timeOfDay,
       maxSnapshotsToKeep: Number(maxSnapshots),
+      autoDownload,
     });
     setScheduleSavedMsg(true);
     setTimeout(() => setScheduleSavedMsg(false), 3000);
@@ -75,6 +81,14 @@ export const BackupRestoreView: React.FC = () => {
   // Immediate manual snapshot
   const handleManualBackupNow = () => {
     createDatabaseSnapshot('نسخة احتياطية فورية يدوية', 'manual');
+  };
+
+  // Share backup via WhatsApp (Web Share API)
+  const handleWhatsAppShare = async () => {
+    setShareMsg(null);
+    const result = await shareBackupViaWhatsApp();
+    setShareMsg({ ok: result.success, text: result.message });
+    if (result.success) setTimeout(() => setShareMsg(null), 6000);
   };
 
   // Handle File selection
@@ -279,18 +293,35 @@ export const BackupRestoreView: React.FC = () => {
                 </span>
               </div>
 
+              {/* Auto-download file on scheduled backup */}
+              <div className="flex items-center justify-between p-3 rounded-xl bg-slate-950 border border-slate-800">
+                <div>
+                  <span className="font-bold text-white block">تنزيل ملف النسخة تلقائياً:</span>
+                  <span className="text-[11px] text-slate-400">
+                    يحفظ ملف JSON في مجلد التنزيلات عند كل نسخة مجدولة (الحماية الحقيقية ضد مسح بيانات المتصفح)
+                  </span>
+                </div>
+                <input
+                  type="checkbox"
+                  checked={autoDownload}
+                  onChange={(e) => setAutoDownload(e.target.checked)}
+                  disabled={!scheduleEnabled}
+                  className="w-5 h-5 accent-emerald-500 cursor-pointer disabled:opacity-50"
+                />
+              </div>
+
               {/* Schedule status info */}
               <div className="p-3 rounded-xl bg-slate-950/70 border border-slate-800 space-y-1 text-[11px]">
                 <div className="flex justify-between text-slate-400">
                   <span>آخر نسخة تم إنشاؤها:</span>
                   <span className="font-mono text-slate-200">
-                    {backupSchedule.lastBackupDate || 'لا توجد نسخة بعد'}
+                    {formatBackupDate(backupSchedule.lastBackupDate)}
                   </span>
                 </div>
                 <div className="flex justify-between text-slate-400">
                   <span>موعد النسخة القادمة:</span>
                   <span className="font-mono text-emerald-400 font-bold">
-                    {backupSchedule.nextBackupDate || 'تحدد تلقائياً'}
+                    {backupSchedule.nextBackupDate ? formatBackupDate(backupSchedule.nextBackupDate) : 'تحدد تلقائياً'}
                   </span>
                 </div>
               </div>
@@ -345,6 +376,19 @@ export const BackupRestoreView: React.FC = () => {
                   <Download className="w-3.5 h-3.5" />
                   <span>تصدير ملف JSON</span>
                 </button>
+                <button
+                  type="button"
+                  onClick={handleWhatsAppShare}
+                  className="w-full py-2 rounded-lg bg-transparent border border-emerald-600 hover:bg-emerald-950/60 text-emerald-400 font-bold text-xs transition flex items-center justify-center gap-1.5 cursor-pointer"
+                >
+                  <Share2 className="w-3.5 h-3.5" />
+                  <span>مشاركة عبر واتساب</span>
+                </button>
+                {shareMsg && (
+                  <p className={`text-[10px] font-bold text-center ${shareMsg.ok ? 'text-emerald-400' : 'text-red-400'}`}>
+                    {shareMsg.text}
+                  </p>
+                )}
               </div>
 
               {/* Excel CSV Export */}

@@ -6,6 +6,7 @@
 import React, { useState } from 'react';
 import { AppProvider, useApp } from './context/AppContext';
 import { Navbar } from './components/Navbar';
+import { BackupAlertBanner } from './components/BackupAlertBanner';
 import { LandingPageView } from './components/LandingPageView';
 import { PosView } from './components/PosView';
 import { InventoryView } from './components/InventoryView';
@@ -43,6 +44,9 @@ const AppContent: React.FC = () => {
     <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col font-sans selection:bg-emerald-500 selection:text-white">
       {/* Top Navigation */}
       <Navbar onOpenVoiceModal={() => setIsVoiceModalOpen(true)} />
+
+      {/* Backup Safety Banner */}
+      <BackupAlertBanner />
 
       {/* Main Content Area */}
       <main className="flex-1">
