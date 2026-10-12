@@ -54,6 +54,8 @@ export const LoginGate: React.FC<LoginGateProps> = ({ targetUser, onSuccess, onC
   return (
     <div className="fixed inset-0 z-[100] flex items-center justify-center bg-slate-950/90 backdrop-blur-sm p-4" dir="rtl">
       <div className="w-full max-w-sm bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-2xl">
+        <img src="/pwa-192x192.png" alt="شعار حساباتي السودان" width={56} height={56}
+          className="w-14 h-14 rounded-2xl mx-auto mb-3 border border-emerald-500/30" />
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-2 text-emerald-400">
             <Lock className="w-5 h-5" />

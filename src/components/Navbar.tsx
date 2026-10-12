@@ -155,11 +155,8 @@ export const Navbar: React.FC<NavbarProps> = ({ onOpenVoiceModal, onOpenCloudMod
       <div className="max-w-7xl mx-auto px-4 sm:px-6 py-3 flex items-center justify-between gap-4">
         {/* Brand */}
         <div className="flex items-center gap-3 cursor-pointer" onClick={() => setActiveTab('landing')}>
-          <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-emerald-600 via-teal-500 to-cyan-500 p-0.5 flex items-center justify-center shadow-lg shadow-emerald-950/50">
-            <div className="w-full h-full bg-slate-950 rounded-[10px] flex items-center justify-center">
-              <ShoppingBag className="w-5 h-5 text-emerald-400" />
-            </div>
-          </div>
+          <img src="/pwa-192x192.png" alt="شعار حساباتي السودان" width={40} height={40}
+            className="w-10 h-10 rounded-xl border border-emerald-500/30 shadow-lg shadow-emerald-950/50" />
           <div>
             <div className="flex items-center gap-1.5">
               <h1 className="font-extrabold text-lg text-white tracking-tight">حساباتي السودان</h1>

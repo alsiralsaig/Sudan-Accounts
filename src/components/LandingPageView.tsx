@@ -182,6 +182,18 @@ export const LandingPageView: React.FC<LandingPageViewProps> = ({
             </button>
           </div>
 
+          {/* البانر التعريفي */}
+          <div className="pt-6 flex justify-center">
+            <img
+              src="/hero-banner.webp"
+              alt="حساباتي السودان — وحدات القياس السودانية: الرطل والكيلو والجوال والدستة"
+              width={560}
+              height={560}
+              loading="lazy"
+              className="w-full max-w-[340px] sm:max-w-[440px] lg:max-w-[520px] rounded-3xl border border-emerald-500/20 shadow-2xl shadow-emerald-950/50"
+            />
+          </div>
+
           {/* Trust badges */}
           <div className="pt-8 flex flex-wrap items-center justify-center gap-6 text-xs text-slate-400">
             <span className="flex items-center gap-1.5">
