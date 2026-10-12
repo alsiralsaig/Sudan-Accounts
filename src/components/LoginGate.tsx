@@ -7,8 +7,9 @@
  *   المالك يضبط الرموز من شاشة الموظفين.
  */
 import React, { useState } from 'react';
-import { Lock, LogIn, ShieldCheck, X } from 'lucide-react';
+import { Lock, LogIn, ShieldCheck, X, Link2 } from 'lucide-react';
 import { useApp } from '../context/AppContext';
+import { CloudSyncModal } from './CloudSyncModal';
 import type { UserProfile } from '../types';
 
 interface LoginGateProps {
@@ -29,6 +30,7 @@ export const LoginGate: React.FC<LoginGateProps> = ({ targetUser, onSuccess, onC
   const [selectedId, setSelectedId] = useState<string>(targetUser?.id || withPin[0]?.id || '');
   const [pin, setPin] = useState('');
   const [error, setError] = useState('');
+  const [showCloud, setShowCloud] = useState(false);
 
   if (!withPin.length) {
     if (mode === 'staff') {
@@ -38,11 +40,30 @@ export const LoginGate: React.FC<LoginGateProps> = ({ targetUser, onSuccess, onC
           <div className="w-full max-w-sm bg-slate-900 border border-slate-800 rounded-2xl p-6 text-center shadow-2xl">
             <Lock className="w-10 h-10 text-amber-400 mx-auto mb-3" />
             <h3 className="font-bold text-slate-100 mb-2">تطبيق العمال لسه ما مفعّل</h3>
-            <p className="text-xs text-slate-400 leading-relaxed">
+            <p className="text-xs text-slate-400 leading-relaxed mb-4">
               المدير يفتح <span className="text-emerald-400 font-bold">تطبيق الإدارة</span> → شاشة الموظفين →
               يضيف العاملين ويحط لكل واحد <span className="text-emerald-400 font-bold">رمز دخول (PIN)</span>.
               من تلك اللحظة تطبيق العمال بيفتح ليهم.
             </p>
+
+            <button
+              onClick={() => setShowCloud(true)}
+              className="w-full flex items-center justify-center gap-2 bg-sky-600 hover:bg-sky-500 text-white font-bold rounded-xl py-2.5 text-sm transition-colors cursor-pointer"
+            >
+              <Link2 className="w-4 h-4" />
+              ربط هذا الجهاز بالمتجر
+            </button>
+            <p className="text-[11px] text-slate-500 mt-2 leading-relaxed">
+              عندك <span className="text-sky-300 font-bold">كود المحل</span>؟ اضغط الزر وادخل
+              الكود + <span className="text-sky-300 font-bold">كلمة سر المالك</span> —
+              الموظفين والبيانات كلها بتنزل هنا فوراً من السحابة.
+            </p>
+
+            {showCloud && (
+              <div className="fixed inset-0 z-[200]">
+                <CloudSyncModal onClose={() => setShowCloud(false)} />
+              </div>
+            )}
           </div>
         </div>
       );
