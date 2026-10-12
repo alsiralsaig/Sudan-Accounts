@@ -1,0 +1,26 @@
+[
+  {
+    "relation": [
+      "delegate_permission/common.handle_all_urls"
+    ],
+    "target": {
+      "namespace": "android_app",
+      "package_name": "sd.alsir.hisabati.admin",
+      "sha256_cert_fingerprints": [
+        "6B:83:99:22:EC:20:CC:C6:A0:FF:FF:42:81:87:66:40:BE:C3:35:5C:DC:D1:52:76:67:A8:78:A3:90:76:9B:93"
+      ]
+    }
+  },
+  {
+    "relation": [
+      "delegate_permission/common.handle_all_urls"
+    ],
+    "target": {
+      "namespace": "android_app",
+      "package_name": "sd.alsir.hisabati.staff",
+      "sha256_cert_fingerprints": [
+        "54:B3:5E:6A:CE:52:CA:55:17:13:76:C6:5A:00:0D:D8:19:03:56:01:27:24:EB:F6:37:15:4D:5D:36:3C:89:96"
+      ]
+    }
+  }
+]
