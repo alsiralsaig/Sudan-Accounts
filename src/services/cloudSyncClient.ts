@@ -22,6 +22,9 @@ const SYNCED_KEYS = [
   'hisabati_movements',
   'hisabati_read_notifications',
   'hisabati_dismissed_notifications',
+  // مهمة جداً: بدونها تغيير اسم المتجر/الهاتف/العنوان «غير مرئي» للمزامنة أبداً
+  'hisabati_store_settings',
+  'hisabati_vat_settings',
 ] as const;
 
 export interface CloudSession {
@@ -108,6 +111,7 @@ export function buildSnapshot(): SnapshotPayload {
     readNotificationIds: read('hisabati_read_notifications'),
     dismissedNotificationIds: read('hisabati_dismissed_notifications'),
     storeSettings: settings ?? {},
+    vatSettings: read('hisabati_vat_settings') ?? {},
   };
   return {
     version: 1,
@@ -124,15 +128,14 @@ export function buildSnapshot(): SnapshotPayload {
   };
 }
 
-/** بصمة رخيصة للبيانات — عشان نعرف الجهاز «اتوسخ» بتغييرات بعد آخر رفع */
+/** بصمة البيانات — عشان نعرف الجهاز «اتوسخ» بتغييرات بعد آخر رفع */
 function signature(): string {
   let h = 5381;
   for (const key of SYNCED_KEYS) {
     const raw = localStorage.getItem(key) || '';
+    // تجزئة المحتوى كاملاً — عينة الذيل القديمة كانت تفوّت التعديلات في وسط البيانات
     h = ((h << 5) + h + raw.length) | 0;
-    // عينة من آخر 200 حرف — بتلقط التعديلات والإضافات
-    const tail = raw.slice(-200);
-    for (let i = 0; i < tail.length; i++) h = ((h << 5) + h + tail.charCodeAt(i)) | 0;
+    for (let i = 0; i < raw.length; i++) h = ((h << 5) + h + raw.charCodeAt(i)) | 0;
   }
   return String(h);
 }
@@ -150,6 +153,7 @@ export function applySnapshot(snap: { data: Record<string, unknown> }): { applie
     ['readNotificationIds', 'hisabati_read_notifications'],
     ['dismissedNotificationIds', 'hisabati_dismissed_notifications'],
     ['storeSettings', 'hisabati_store_settings'],
+    ['vatSettings', 'hisabati_vat_settings'],
   ];
   let applied = 0;
   for (const [field, key] of map) {
@@ -311,6 +315,13 @@ export async function pullLatest(apply: boolean): Promise<{
       return { ok: true, hasSnapshot: true, clientAt: meta.clientAt };
     }
     const full = await api('/latest?full=1', { headers: authHeaders() });
+    // 🛡️ حماية: لو فيه تعديلات محلية ما اترفعتش — ما نطبقش نسخة سحابية فوقها أبداً
+    // (دي كانت بتسبب: رجوع اسم المتجر القديم + رجوع المنتجات المحذوفة + مسح الـ PINs)
+    if (lastSig !== null && signature() !== lastSig) {
+      emit({ state: 'conflict', message: 'فيه تعديلات محلية ما اترفعتش — رفعناها بدل ما تتمسح بالتنزيل' });
+      schedulePush();
+      return { ok: true, hasSnapshot: true, message: 'فيه تعديلات محلية — هنرفعها بدل ما تتمسح' };
+    }
     applyRemote(full.data);
     lastSig = signature();
     updateSession({ lastPullAt: new Date().toISOString(), baseSnapshotAt: full.clientAt });
@@ -349,10 +360,20 @@ async function syncCycle(): Promise<void> {
     if (meta?.hasSnapshot && s.baseSnapshotAt && Date.parse(meta.clientAt) > Date.parse(s.baseSnapshotAt)) {
       await pullLatest(true);
     } else if (meta?.hasSnapshot && !s.baseSnapshotAt) {
-      // أول مزامنة بعد الربط — الجهاز فاضي؟ خد السحابة. عنده حاجة؟ ارفعها.
-      const hasLocal = (localStorage.getItem('hisabati_products') || '').length > 10;
-      if (!hasLocal) await pullLatest(true);
-      else await pushNow('auto');
+      // أول مزامنة بعد الربط:
+      // الجهاز فاضي → خد السحابة. فيه بيانات في الطرفين → لا نمسح أي طرف تلقائياً!
+      // (الرفع التلقائي هنا كان «يحيي» بيانات قديمة ويمسح تعديلات الأجهزة التانية)
+      const hasLocal = (localStorage.getItem('hisabati_products') || '').length > 10
+        || (localStorage.getItem('hisabati_invoices') || '').length > 10
+        || (localStorage.getItem('hisabati_staff') || '').length > 10;
+      if (!hasLocal) {
+        await pullLatest(true);
+      } else {
+        emit({
+          state: 'conflict',
+          message: 'فيه بيانات على السحابة وبيانات على الجهاز — افتح نافذة السحابة واختر «ارفع الآن» أو «نزّل من السحابة»',
+        });
+      }
     } else {
       emit({ state: 'synced', at: s.lastPushAt || s.lastPullAt || new Date().toISOString() });
     }

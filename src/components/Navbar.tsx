@@ -23,6 +23,7 @@ import {
   CloudOff,
   RefreshCw,
   AlertTriangle,
+  Settings,
 } from 'lucide-react';
 import { loadSession, onSyncStatus, type SyncStatus } from '../services/cloudSyncClient';
 import { IS_STAFF_APP } from '../appMode';
@@ -31,6 +32,7 @@ import { useApp } from '../context/AppContext';
 import { BusinessType, UserProfile } from '../types';
 import { StockNotificationCenter } from './StockNotificationCenter';
 import { EmailNotificationsModal } from './EmailNotificationsModal';
+import { StoreSettingsModal } from './StoreSettingsModal';
 import { VoiceAlertSettingsModal } from './VoiceAlertSettingsModal';
 
 interface NavbarProps {
@@ -41,6 +43,7 @@ interface NavbarProps {
 export const Navbar: React.FC<NavbarProps> = ({ onOpenVoiceModal, onOpenCloudModal }) => {
   const [isEmailModalOpen, setIsEmailModalOpen] = useState(false);
   const [isVoiceAlertSettingsOpen, setIsVoiceAlertSettingsOpen] = useState(false);
+  const [isStoreSettingsOpen, setIsStoreSettingsOpen] = useState(false);
   const [cloudStatus, setCloudStatus] = useState<SyncStatus>({ state: 'unconfigured' });
   const [switchTarget, setSwitchTarget] = useState<UserProfile | null>(null);
 
@@ -337,6 +340,17 @@ export const Navbar: React.FC<NavbarProps> = ({ onOpenVoiceModal, onOpenCloudMod
 
         {/* Fast Action Voice Button & Notifications */}
         <div className="flex items-center gap-2">
+          {/* Store Settings Button (بيانات المتجر) */}
+          {!IS_STAFF_APP && (
+            <button
+              onClick={() => setIsStoreSettingsOpen(true)}
+              className="p-2 rounded-xl border bg-slate-800/80 hover:bg-slate-700/80 text-slate-300 hover:text-white border-slate-700/60 transition cursor-pointer"
+              title="بيانات المتجر (الاسم والهاتف والعنوان)"
+            >
+              <Settings className="w-4 h-4" />
+            </button>
+          )}
+
           {/* Notification Bell Dropdown */}
           <StockNotificationCenter mode="dropdown" />
 
@@ -543,6 +557,12 @@ export const Navbar: React.FC<NavbarProps> = ({ onOpenVoiceModal, onOpenCloudMod
       <VoiceAlertSettingsModal
         isOpen={isVoiceAlertSettingsOpen}
         onClose={() => setIsVoiceAlertSettingsOpen(false)}
+      />
+
+      {/* Store Settings Modal (بيانات المتجر) */}
+      <StoreSettingsModal
+        isOpen={isStoreSettingsOpen}
+        onClose={() => setIsStoreSettingsOpen(false)}
       />
     </header>
   );

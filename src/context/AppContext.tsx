@@ -1121,10 +1121,10 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     if (target.data.auditLogs) setAuditLogs(target.data.auditLogs);
     if (target.data.stockMovements) setStockMovements(target.data.stockMovements);
     if (target.data.storeSettings) {
-      setStoreName(target.data.storeSettings.storeName);
-      setStorePhone(target.data.storeSettings.storePhone);
-      setStoreAddress(target.data.storeSettings.storeAddress);
-      setBusinessType(target.data.storeSettings.businessType);
+      if (target.data.storeSettings.storeName) setStoreName(target.data.storeSettings.storeName);
+      if (target.data.storeSettings.storePhone) setStorePhone(target.data.storeSettings.storePhone);
+      if (target.data.storeSettings.storeAddress) setStoreAddress(target.data.storeSettings.storeAddress);
+      if (target.data.storeSettings.businessType) setBusinessType(target.data.storeSettings.businessType);
     }
 
     addAuditLog('استعادة قاعدة البيانات', `تمت استعادة البيانات بنجاح من النسخة المحفوظة: ${target.title} (${target.createdAt})`);
@@ -1163,6 +1163,9 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
           if (snapshotData.storeSettings.storePhone) setStorePhone(snapshotData.storeSettings.storePhone);
           if (snapshotData.storeSettings.storeAddress) setStoreAddress(snapshotData.storeSettings.storeAddress);
           if (snapshotData.storeSettings.businessType) setBusinessType(snapshotData.storeSettings.businessType);
+        }
+        if (snapshotData.vatSettings && typeof snapshotData.vatSettings === 'object') {
+          setVatSettingsState((prev) => ({ ...prev, ...snapshotData.vatSettings }));
         }
       } else {
         // Merge mode
