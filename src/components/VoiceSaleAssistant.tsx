@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
   Mic,
   MicOff,
@@ -61,6 +61,9 @@ export const VoiceSaleAssistant: React.FC<VoiceSaleAssistantProps> = ({
   const [showTeachModal, setShowTeachModal] = useState(false);
   const [termToTeach, setTermToTeach] = useState({ dialect: '', standard: '', productId: '' });
 
+  // منع التكرار: WebView بيرسل نفس الكلمة كذا مرة في event.results — الكود القديم كان بيجمعها كلها
+  const speechStopRef = useRef(false);
+
   // Web Speech Recognition support
   useEffect(() => {
     let recognition: any = null;
@@ -68,26 +71,52 @@ export const VoiceSaleAssistant: React.FC<VoiceSaleAssistantProps> = ({
       (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
 
     if (SpeechRecognition && isRecording) {
+      speechStopRef.current = false;
       recognition = new SpeechRecognition();
       recognition.lang = 'ar-SD'; // Sudanese Arabic
       recognition.continuous = true;
       recognition.interimResults = true;
 
+      // النتائج النهائية بتتثبت حسب ترتيبها (كتابة فوق نفس الموضع = بدون تكرار)،
+      // والنتيجة المؤقتة بنعرض آخر واحدة بس — ده بيمنع «الشايالشايالشاي...» في WebView
+      const finalsByIndex: Array<string | undefined> = [];
+
       recognition.onresult = (event: any) => {
-        let transcript = '';
+        let interim = '';
         for (let i = 0; i < event.results.length; i++) {
-          transcript += event.results[i][0].transcript;
+          const piece = event.results[i][0]?.transcript ?? '';
+          if (event.results[i].isFinal) {
+            finalsByIndex[i] = piece;
+          } else {
+            interim = piece;
+          }
         }
-        setInputSpeechText(transcript);
+        const finalPart = finalsByIndex.filter(Boolean).join(' ');
+        setInputSpeechText(
+          (finalPart + (interim ? (finalPart ? ' ' : '') + interim : '')).trim()
+        );
       };
 
       recognition.onerror = (e: any) => {
         console.warn('Speech recognition error:', e);
-        setIsRecording(false);
+        if (e?.error === 'not-allowed' || e?.error === 'service-not-allowed') {
+          speechStopRef.current = true;
+          setIsRecording(false);
+        }
+        // 'no-speech' أو 'aborted' → onend هيرجع يسجل لو المستخدم لسه ماسك المايك
       };
 
       recognition.onend = () => {
-        setIsRecording(false);
+        if (speechStopRef.current) {
+          setIsRecording(false);
+          return;
+        }
+        // WebView بينهي الجلسة بسرعة عند الصمت — نرجع نسجل طول ما الزر مضغوط
+        try {
+          recognition.start();
+        } catch {
+          setIsRecording(false);
+        }
       };
 
       try {
@@ -99,15 +128,33 @@ export const VoiceSaleAssistant: React.FC<VoiceSaleAssistantProps> = ({
 
     return () => {
       if (recognition) {
-        recognition.stop();
+        speechStopRef.current = true;
+        try {
+          recognition.stop();
+        } catch {
+          /* تجاهل */
+        }
       }
     };
   }, [isRecording]);
 
+  // لو النافذة اتقفلت والمايك مفتوح — قفله
+  useEffect(() => {
+    if (!isOpen) {
+      speechStopRef.current = true;
+      setIsRecording(false);
+    }
+  }, [isOpen]);
+
   if (!isOpen) return null;
 
   const toggleRecording = () => {
-    setIsRecording(!isRecording);
+    if (isRecording) {
+      speechStopRef.current = true;
+      setIsRecording(false);
+    } else {
+      setIsRecording(true);
+    }
   };
 
   const handleAnalyze = async (textToProcess?: string) => {

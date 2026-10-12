@@ -15,7 +15,9 @@ export function usePWAInstall() {
     const isStandalone =
       window.matchMedia('(display-mode: standalone)').matches ||
       (window.navigator as unknown as { standalone?: boolean }).standalone === true;
-    setIsInstalled(isStandalone);
+    // WebView مدمج (زي تطبيق APK بتاعنا أو متصفح واتساب) — التثبيت مش متاح فيه أصلاً
+    const isEmbeddedWebView = /;\s*wv\b/i.test(window.navigator.userAgent);
+    setIsInstalled(isStandalone || isEmbeddedWebView);
 
     // Detect iOS devices
     const userAgent = window.navigator.userAgent.toLowerCase();
