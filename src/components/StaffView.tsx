@@ -320,7 +320,7 @@ export const StaffView: React.FC = () => {
                       className="p-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white transition text-xs flex items-center gap-1"
                     >
                       <Edit2 className="w-3.5 h-3.5" />
-                      <span>تعديل الصلاحيات</span>
+                      <span>تعديل البيانات</span>
                     </button>
                     {currentUser.id !== staff.id && (
                       <button
@@ -391,7 +391,7 @@ export const StaffView: React.FC = () => {
         <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-slate-950/80 backdrop-blur-sm">
           <div className="bg-slate-900 border border-slate-700 w-full max-w-lg rounded-2xl p-5 space-y-4 max-h-[90vh] overflow-y-auto text-slate-100 text-xs shadow-2xl">
             <h3 className="font-extrabold text-base text-white">
-              {editingStaff ? 'تعديل صلاحيات الموظف' : 'إضافة موظف جديد'}
+              {editingStaff ? 'تعديل بيانات الموظف' : 'إضافة موظف جديد'}
             </h3>
 
             <form onSubmit={handleSaveStaff} className="space-y-4">
