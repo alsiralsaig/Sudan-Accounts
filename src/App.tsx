@@ -17,6 +17,8 @@ import { DictionaryView } from './components/DictionaryView';
 import { VerificationModal } from './components/VerificationModal';
 import { CloudSyncModal } from './components/CloudSyncModal';
 import { LoginGate } from './components/LoginGate';
+import { PWAInstallButton } from './components/PWAInstallButton';
+import { IS_STAFF_APP } from './appMode';
 import {
   loadSession,
   startAutoSync,
@@ -61,12 +63,12 @@ const AppContent: React.FC = () => {
     return () => setAutoApplyHandler(null);
   }, []); // مرة واحدة عند الإقلاع
 
-  /* قفل الدخول: لو مضبوط PINs للموظفين — اسأل «مين الماسك الجهاز؟» عند الفتح */
+  /* قفل الدخول: لو مضبوط PINs للموظفين — اسأل «مين الماسك الجهاز؟» عند الفتح
+     وفي تطبيق العمال: مقفول دايماً — العمال بس (بدون المالك) */
   const anyPin = staffList.some((u) => u.pin && u.pin.length >= 4);
   const [locked, setLocked] = useState<boolean | null>(null); // null = ما قررنا بعد
   useEffect(() => {
-    if (locked === null && anyPin) setLocked(true);
-    if (locked === null && !anyPin) setLocked(false);
+    if (locked === null) setLocked(IS_STAFF_APP ? true : anyPin);
   }, [anyPin, locked]);
 
   const handleInvoiceCreated = (invoiceId: string) => {
@@ -76,10 +78,14 @@ const AppContent: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col font-sans selection:bg-emerald-500 selection:text-white">
+      {/* لافتة تثبيت تطبيق العمال — أول ما يفتح الجهاز الجديد */}
+      {IS_STAFF_APP && <div className="px-3 pt-3"><PWAInstallButton variant="banner" /></div>}
+
       {/* قفل الدخول — لو الرموز مضبوطة */}
       {locked === true && currentUser && (
         <LoginGate
-          title="مين الماسك الجهاز؟"
+          mode={IS_STAFF_APP ? 'staff' : 'admin'}
+          title={IS_STAFF_APP ? 'دخول العاملين' : 'مين الماسك الجهاز؟'}
           onSuccess={(u) => { setCurrentUser(u); setLocked(false); }}
         />
       )}

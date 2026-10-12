@@ -25,6 +25,7 @@ import {
   AlertTriangle,
 } from 'lucide-react';
 import { loadSession, onSyncStatus, type SyncStatus } from '../services/cloudSyncClient';
+import { IS_STAFF_APP } from '../appMode';
 import { LoginGate } from './LoginGate';
 import { useApp } from '../context/AppContext';
 import { BusinessType, UserProfile } from '../types';
@@ -79,7 +80,8 @@ export const Navbar: React.FC<NavbarProps> = ({ onOpenVoiceModal, onOpenCloudMod
       {/* Top Banner: Quick Role Switcher & Business Type Switcher */}
       <div className="bg-slate-950 border-b border-slate-800/80 px-4 py-1.5 text-xs flex flex-wrap items-center justify-between gap-3">
         {/* Business Type Selector */}
-        <div className="flex items-center gap-2">
+        {!IS_STAFF_APP && (
+          <div className="flex items-center gap-2">
           <span className="text-slate-400 flex items-center gap-1 font-medium">
             <Store className="w-3.5 h-3.5 text-emerald-400" />
             نشاط المتجر:
@@ -96,6 +98,7 @@ export const Navbar: React.FC<NavbarProps> = ({ onOpenVoiceModal, onOpenCloudMod
             ))}
           </select>
         </div>
+        )}
 
         {/* Role Switcher */}
         <div className="flex items-center gap-3">
@@ -134,7 +137,7 @@ export const Navbar: React.FC<NavbarProps> = ({ onOpenVoiceModal, onOpenCloudMod
               }}
               className="bg-slate-800 border border-slate-700 text-slate-300 rounded px-1.5 py-0.5 text-[11px] outline-none hover:border-slate-600 cursor-pointer"
             >
-              {staffList.map((st) => (
+              {staffList.filter((u) => !IS_STAFF_APP || u.role !== 'owner').map((st) => (
                 <option key={st.id} value={st.id}>
                   تبديل إلى: {st.name} ({st.role === 'owner' ? 'مالك' : st.role === 'cashier' ? 'كاشير' : 'مخزن'}){st.pin ? ' 🔒' : ''}
                 </option>
@@ -154,7 +157,7 @@ export const Navbar: React.FC<NavbarProps> = ({ onOpenVoiceModal, onOpenCloudMod
       {/* Main Bar */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 py-3 flex items-center justify-between gap-4">
         {/* Brand */}
-        <div className="flex items-center gap-3 cursor-pointer" onClick={() => setActiveTab('landing')}>
+        <div className="flex items-center gap-3 cursor-pointer" onClick={() => setActiveTab(IS_STAFF_APP ? 'pos' : 'landing')}>
           <img src="/pwa-192x192.png" alt="شعار حساباتي السودان" width={40} height={40}
             className="w-10 h-10 rounded-xl border border-emerald-500/30 shadow-lg shadow-emerald-950/50" />
           <div>
@@ -170,6 +173,7 @@ export const Navbar: React.FC<NavbarProps> = ({ onOpenVoiceModal, onOpenCloudMod
 
         {/* Navigation Tabs */}
         <nav className="hidden lg:flex items-center gap-1 bg-slate-950/60 p-1 rounded-xl border border-slate-800">
+          {!IS_STAFF_APP && (
           <button
             onClick={() => setActiveTab('landing')}
             className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition ${
@@ -180,6 +184,7 @@ export const Navbar: React.FC<NavbarProps> = ({ onOpenVoiceModal, onOpenCloudMod
           >
             عن المنصة
           </button>
+        )}
           <button
             onClick={() => setActiveTab('pos')}
             className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition flex items-center gap-1.5 ${
@@ -225,6 +230,7 @@ export const Navbar: React.FC<NavbarProps> = ({ onOpenVoiceModal, onOpenCloudMod
             <FileText className="w-3.5 h-3.5" />
             الفواتير والمبيعات
           </button>
+          {!IS_STAFF_APP && (
           <button
             onClick={() => setActiveTab('dashboard')}
             className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition flex items-center gap-1.5 relative ${
@@ -248,6 +254,8 @@ export const Navbar: React.FC<NavbarProps> = ({ onOpenVoiceModal, onOpenCloudMod
               </span>
             )}
           </button>
+        )}
+          {!IS_STAFF_APP && (
           <button
             onClick={() => setActiveTab('expenses')}
             className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition flex items-center gap-1.5 ${
@@ -259,6 +267,8 @@ export const Navbar: React.FC<NavbarProps> = ({ onOpenVoiceModal, onOpenCloudMod
             <Wallet className="w-3.5 h-3.5" />
             المصروفات وP&L
           </button>
+        )}
+          {!IS_STAFF_APP && (
           <button
             onClick={() => setActiveTab('taxes')}
             className={`px-2.5 py-1.5 rounded-lg text-xs font-semibold transition flex items-center gap-1 ${
@@ -270,6 +280,8 @@ export const Navbar: React.FC<NavbarProps> = ({ onOpenVoiceModal, onOpenCloudMod
             <Percent className="w-3.5 h-3.5 text-emerald-400" />
             الضرائب وVAT
           </button>
+        )}
+          {!IS_STAFF_APP && (
           <button
             onClick={() => setActiveTab('staff')}
             className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition flex items-center gap-1.5 ${
@@ -281,6 +293,8 @@ export const Navbar: React.FC<NavbarProps> = ({ onOpenVoiceModal, onOpenCloudMod
             <Users className="w-3.5 h-3.5" />
             الموظفون
           </button>
+        )}
+          {!IS_STAFF_APP && (
           <button
             onClick={() => setActiveTab('dictionary')}
             className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition flex items-center gap-1.5 ${
@@ -292,6 +306,8 @@ export const Navbar: React.FC<NavbarProps> = ({ onOpenVoiceModal, onOpenCloudMod
             <BookOpen className="w-3.5 h-3.5" />
             القاموس السوداني
           </button>
+        )}
+          {!IS_STAFF_APP && (
           <button
             onClick={() => setActiveTab('backup')}
             className={`px-2.5 py-1.5 rounded-lg text-xs font-semibold transition flex items-center gap-1 ${
@@ -303,6 +319,8 @@ export const Navbar: React.FC<NavbarProps> = ({ onOpenVoiceModal, onOpenCloudMod
             <Database className="w-3.5 h-3.5 text-emerald-400" />
             النسخ والجدولة
           </button>
+        )}
+          {!IS_STAFF_APP && (
           <button
             onClick={() => setActiveTab('verifier')}
             className={`px-2.5 py-1.5 rounded-lg text-xs font-semibold transition flex items-center gap-1 ${
@@ -314,6 +332,7 @@ export const Navbar: React.FC<NavbarProps> = ({ onOpenVoiceModal, onOpenCloudMod
             <CheckCircle2 className="w-3.5 h-3.5 text-cyan-400" />
             فحص الدقة
           </button>
+        )}
         </nav>
 
         {/* Fast Action Voice Button & Notifications */}
@@ -363,7 +382,8 @@ export const Navbar: React.FC<NavbarProps> = ({ onOpenVoiceModal, onOpenCloudMod
 
       {/* Mobile Nav Bar */}
       <div className="lg:hidden flex items-center overflow-x-auto gap-1 px-3 py-2 border-t border-slate-800/80 bg-slate-950/80 scrollbar-none text-xs">
-        <button
+        {!IS_STAFF_APP && (
+          <button
           onClick={() => setActiveTab('landing')}
           className={`shrink-0 px-2.5 py-1 rounded-md font-medium ${
             activeTab === 'landing' ? 'bg-slate-800 text-emerald-400' : 'text-slate-400'
@@ -371,6 +391,7 @@ export const Navbar: React.FC<NavbarProps> = ({ onOpenVoiceModal, onOpenCloudMod
         >
           عن المنصة
         </button>
+        )}
         <button
           onClick={() => setActiveTab('pos')}
           className={`shrink-0 px-2.5 py-1 rounded-md font-medium ${
@@ -400,7 +421,8 @@ export const Navbar: React.FC<NavbarProps> = ({ onOpenVoiceModal, onOpenCloudMod
         >
           الفواتير
         </button>
-        <button
+        {!IS_STAFF_APP && (
+          <button
           onClick={() => setActiveTab('dashboard')}
           className={`shrink-0 px-2.5 py-1 rounded-md font-medium flex items-center gap-1 ${
             activeTab === 'dashboard' ? 'bg-slate-800 text-emerald-400' : 'text-slate-400'
@@ -413,7 +435,9 @@ export const Navbar: React.FC<NavbarProps> = ({ onOpenVoiceModal, onOpenCloudMod
             </span>
           )}
         </button>
-        <button
+        )}
+        {!IS_STAFF_APP && (
+          <button
           onClick={() => setActiveTab('expenses')}
           className={`shrink-0 px-2.5 py-1 rounded-md font-medium ${
             activeTab === 'expenses' ? 'bg-slate-800 text-emerald-400' : 'text-slate-400'
@@ -421,7 +445,9 @@ export const Navbar: React.FC<NavbarProps> = ({ onOpenVoiceModal, onOpenCloudMod
         >
           المصروفات وP&L
         </button>
-        <button
+        )}
+        {!IS_STAFF_APP && (
+          <button
           onClick={() => setActiveTab('taxes')}
           className={`shrink-0 px-2.5 py-1 rounded-md font-medium ${
             activeTab === 'taxes' ? 'bg-slate-800 text-emerald-400' : 'text-slate-400'
@@ -429,7 +455,9 @@ export const Navbar: React.FC<NavbarProps> = ({ onOpenVoiceModal, onOpenCloudMod
         >
           الضرائب وVAT
         </button>
-        <button
+        )}
+        {!IS_STAFF_APP && (
+          <button
           onClick={() => setActiveTab('staff')}
           className={`shrink-0 px-2.5 py-1 rounded-md font-medium ${
             activeTab === 'staff' ? 'bg-slate-800 text-emerald-400' : 'text-slate-400'
@@ -437,7 +465,9 @@ export const Navbar: React.FC<NavbarProps> = ({ onOpenVoiceModal, onOpenCloudMod
         >
           الموظفون
         </button>
-        <button
+        )}
+        {!IS_STAFF_APP && (
+          <button
           onClick={() => setActiveTab('dictionary')}
           className={`shrink-0 px-2.5 py-1 rounded-md font-medium ${
             activeTab === 'dictionary' ? 'bg-slate-800 text-emerald-400' : 'text-slate-400'
@@ -445,7 +475,9 @@ export const Navbar: React.FC<NavbarProps> = ({ onOpenVoiceModal, onOpenCloudMod
         >
           القاموس
         </button>
-        <button
+        )}
+        {!IS_STAFF_APP && (
+          <button
           onClick={() => setActiveTab('backup')}
           className={`shrink-0 px-2.5 py-1 rounded-md font-medium ${
             activeTab === 'backup' ? 'bg-slate-800 text-emerald-400' : 'text-slate-400'
@@ -453,7 +485,9 @@ export const Navbar: React.FC<NavbarProps> = ({ onOpenVoiceModal, onOpenCloudMod
         >
           النسخ الاحتياطي
         </button>
-        <button
+        )}
+        {!IS_STAFF_APP && (
+          <button
           onClick={() => setActiveTab('verifier')}
           className={`shrink-0 px-2.5 py-1 rounded-md font-medium ${
             activeTab === 'verifier' ? 'bg-slate-800 text-emerald-400' : 'text-slate-400'
@@ -461,6 +495,7 @@ export const Navbar: React.FC<NavbarProps> = ({ onOpenVoiceModal, onOpenCloudMod
         >
           فحص الدقة
         </button>
+        )}
         {/* زر السحابة — حالة المزامنة */}
         {(() => {
           const linked = Boolean(loadSession());

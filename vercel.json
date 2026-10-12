@@ -11,5 +11,15 @@
     "api/cloud/*.ts": {
       "maxDuration": 20
     }
-  }
+  },
+  "rewrites": [
+    {
+      "source": "/staff",
+      "destination": "/"
+    },
+    {
+      "source": "/staff/(.*)",
+      "destination": "/"
+    }
+  ]
 }

@@ -17,16 +17,36 @@ interface LoginGateProps {
   onSuccess: (user: UserProfile) => void;
   onCancel?: () => void;
   title?: string;
+  /** وضع التطبيق: admin = الكل، staff = العمال بس (بدون المالك) وما يتجاوزش أبداً */
+  mode?: 'admin' | 'staff';
 }
 
-export const LoginGate: React.FC<LoginGateProps> = ({ targetUser, onSuccess, onCancel, title }) => {
+export const LoginGate: React.FC<LoginGateProps> = ({ targetUser, onSuccess, onCancel, title, mode = 'admin' }) => {
   const { staffList } = useApp();
-  const withPin = staffList.filter((u) => u.pin && u.pin.length >= 4);
+  const withPin = mode === 'staff'
+    ? staffList.filter((u) => u.role !== 'owner' && u.pin && u.pin.length >= 4)
+    : staffList.filter((u) => u.pin && u.pin.length >= 4);
   const [selectedId, setSelectedId] = useState<string>(targetUser?.id || withPin[0]?.id || '');
   const [pin, setPin] = useState('');
   const [error, setError] = useState('');
 
   if (!withPin.length) {
+    if (mode === 'staff') {
+      /* تطبيق العمال من غير رموز مضبوطة = مقفول تماماً — المدير يفعّلها من تطبيق الإدارة */
+      return (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-slate-950 p-4" dir="rtl">
+          <div className="w-full max-w-sm bg-slate-900 border border-slate-800 rounded-2xl p-6 text-center shadow-2xl">
+            <Lock className="w-10 h-10 text-amber-400 mx-auto mb-3" />
+            <h3 className="font-bold text-slate-100 mb-2">تطبيق العمال لسه ما مفعّل</h3>
+            <p className="text-xs text-slate-400 leading-relaxed">
+              المدير يفتح <span className="text-emerald-400 font-bold">تطبيق الإدارة</span> → شاشة الموظفين →
+              يضيف العاملين ويحط لكل واحد <span className="text-emerald-400 font-bold">رمز دخول (PIN)</span>.
+              من تلك اللحظة تطبيق العمال بيفتح ليهم.
+            </p>
+          </div>
+        </div>
+      );
+    }
     // ما في رموز — سايح زي زمان
     onSuccess(targetUser || staffList[0]);
     return null;

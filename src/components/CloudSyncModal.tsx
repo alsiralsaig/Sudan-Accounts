@@ -22,6 +22,7 @@ import {
   Loader2,
 } from 'lucide-react';
 import { useApp } from '../context/AppContext';
+import { IS_STAFF_APP } from '../appMode';
 import {
   loadSession,
   saveSession,
@@ -57,6 +58,7 @@ export const CloudSyncModal: React.FC<CloudSyncModalProps> = ({ onClose }) => {
 
   // نماذج التسجيل والربط
   const [tab, setTab] = useState<Tab>('link');
+  const staffMode = IS_STAFF_APP; // تطبيق العمال: ربط جهاز بس — التسجيل للإدارة
   const [regStoreName, setRegStoreName] = useState(currentStoreName);
   const [regOwnerName, setRegOwnerName] = useState('');
   const [regEmail, setRegEmail] = useState('');
@@ -341,7 +343,7 @@ export const CloudSyncModal: React.FC<CloudSyncModalProps> = ({ onClose }) => {
             <>
               {ping?.ok ? (
                 <>
-                  <div className="flex gap-2">
+                  <div className={`flex gap-2 ${staffMode ? 'hidden' : ''}`}>
                     <button
                       onClick={() => setTab('link')}
                       className={`flex-1 flex items-center justify-center gap-1.5 rounded-lg py-2 text-xs font-bold border transition-colors ${tab === 'link' ? 'bg-sky-600 border-sky-500 text-white' : 'border-slate-700 text-slate-400 hover:border-slate-600'}`}
@@ -358,7 +360,7 @@ export const CloudSyncModal: React.FC<CloudSyncModalProps> = ({ onClose }) => {
                     </button>
                   </div>
 
-                  {tab === 'register' ? (
+                  {!staffMode && tab === 'register' ? (
                     <div className="space-y-2.5">
                       <div>
                         <label className="block text-xs text-slate-400 mb-1">اسم المحل</label>
