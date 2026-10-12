@@ -34,6 +34,9 @@
       document.title = staff ? 'حساباتي — العمال' : 'حساباتي السودان — الإدارة';
       var t = document.querySelector('meta[name="apple-mobile-web-app-title"]');
       if (t) t.setAttribute('content', staff ? 'حساباتي عمال' : 'حساباتي إدارة');
+      // أيقونة تثبيت آيفون/آيباد لكل تطبيق
+      var apple = document.querySelector('link[rel="apple-touch-icon"]');
+      if (apple) apple.setAttribute('href', staff ? '/apple-touch-icon.png' : '/apple-touch-icon-admin.png');
     })();
   </script>
 </head>
