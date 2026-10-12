@@ -7,6 +7,9 @@
   "functions": {
     "api/ai/parse-sale.ts": {
       "maxDuration": 30
+    },
+    "api/cloud/*.ts": {
+      "maxDuration": 20
     }
   }
 }

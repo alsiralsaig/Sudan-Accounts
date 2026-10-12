@@ -18,6 +18,8 @@ export interface UserProfile {
   phone: string;
   avatar?: string;
   permissions: UserPermissions;
+  /** رمز الدخول (4-6 أرقام) — اختياري. لو موجود، التبديل ليه بطلب الرمز */
+  pin?: string;
 }
 
 export type BusinessType = 

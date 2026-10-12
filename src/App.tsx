@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { AppProvider, useApp } from './context/AppContext';
 import { Navbar } from './components/Navbar';
 import { BackupAlertBanner } from './components/BackupAlertBanner';
@@ -15,6 +15,13 @@ import { DashboardView } from './components/DashboardView';
 import { StaffView } from './components/StaffView';
 import { DictionaryView } from './components/DictionaryView';
 import { VerificationModal } from './components/VerificationModal';
+import { CloudSyncModal } from './components/CloudSyncModal';
+import { LoginGate } from './components/LoginGate';
+import {
+  loadSession,
+  startAutoSync,
+  setAutoApplyHandler,
+} from './services/cloudSyncClient';
 import { BackupRestoreView } from './components/BackupRestoreView';
 import { VoiceSaleAssistant } from './components/VoiceSaleAssistant';
 import { InvoiceReceiptModal } from './components/InvoiceReceiptModal';
@@ -30,10 +37,37 @@ import {
 } from 'lucide-react';
 
 const AppContent: React.FC = () => {
-  const { activeTab, setActiveTab, resetToDefaultData, storeName } = useApp();
+  const {
+    activeTab,
+    setActiveTab,
+    resetToDefaultData,
+    storeName,
+    staffList,
+    currentUser,
+    setCurrentUser,
+    restoreDatabaseFromJSONString,
+  } = useApp();
 
   const [isVoiceModalOpen, setIsVoiceModalOpen] = useState(false);
+  const [isCloudModalOpen, setIsCloudModalOpen] = useState(false);
   const [selectedInvoiceId, setSelectedInvoiceId] = useState<string | null>(null);
+
+  /* السحابة: شغّل المزامنة التلقائية لو الجهاز مربوط + سجّل مسار تطبيق النسخ النازلة */
+  useEffect(() => {
+    setAutoApplyHandler((data) => {
+      restoreDatabaseFromJSONString(JSON.stringify({ data }), 'overwrite');
+    });
+    if (loadSession()) startAutoSync();
+    return () => setAutoApplyHandler(null);
+  }, []); // مرة واحدة عند الإقلاع
+
+  /* قفل الدخول: لو مضبوط PINs للموظفين — اسأل «مين الماسك الجهاز؟» عند الفتح */
+  const anyPin = staffList.some((u) => u.pin && u.pin.length >= 4);
+  const [locked, setLocked] = useState<boolean | null>(null); // null = ما قررنا بعد
+  useEffect(() => {
+    if (locked === null && anyPin) setLocked(true);
+    if (locked === null && !anyPin) setLocked(false);
+  }, [anyPin, locked]);
 
   const handleInvoiceCreated = (invoiceId: string) => {
     setSelectedInvoiceId(invoiceId);
@@ -42,8 +76,19 @@ const AppContent: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col font-sans selection:bg-emerald-500 selection:text-white">
+      {/* قفل الدخول — لو الرموز مضبوطة */}
+      {locked === true && currentUser && (
+        <LoginGate
+          title="مين الماسك الجهاز؟"
+          onSuccess={(u) => { setCurrentUser(u); setLocked(false); }}
+        />
+      )}
+
       {/* Top Navigation */}
-      <Navbar onOpenVoiceModal={() => setIsVoiceModalOpen(true)} />
+      <Navbar
+        onOpenVoiceModal={() => setIsVoiceModalOpen(true)}
+        onOpenCloudModal={() => setIsCloudModalOpen(true)}
+      />
 
       {/* Backup Safety Banner */}
       <BackupAlertBanner />
@@ -84,6 +129,9 @@ const AppContent: React.FC = () => {
 
         {activeTab === 'verifier' && <VerificationModal />}
       </main>
+
+      {/* Cloud Sync Modal */}
+      {isCloudModalOpen && <CloudSyncModal onClose={() => setIsCloudModalOpen(false)} />}
 
       {/* Voice Sale Assistant Modal */}
       <VoiceSaleAssistant

@@ -168,9 +168,18 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const [businessType, setBusinessType] = useState<BusinessType>('grocery');
 
   // Store information
-  const [storeName, setStoreName] = useState<string>('بقالة ومحلات الأمانة الذكية');
-  const [storePhone, setStorePhone] = useState<string>('0912345678 - 0123456789');
-  const [storeAddress, setStoreAddress] = useState<string>('السوق المركزي، الخرطوم / بورتسودان');
+  const [storeName, setStoreName] = useState<string>(() => {
+    const saved = localStorage.getItem('hisabati_store_settings');
+    return saved ? (JSON.parse(saved).storeName ?? 'بقالة ومحلات الأمانة الذكية') : 'بقالة ومحلات الأمانة الذكية';
+  });
+  const [storePhone, setStorePhone] = useState<string>(() => {
+    const saved = localStorage.getItem('hisabati_store_settings');
+    return saved ? (JSON.parse(saved).storePhone ?? '0912345678 - 0123456789') : '0912345678 - 0123456789';
+  });
+  const [storeAddress, setStoreAddress] = useState<string>(() => {
+    const saved = localStorage.getItem('hisabati_store_settings');
+    return saved ? (JSON.parse(saved).storeAddress ?? 'السوق المركزي، الخرطوم / بورتسودان') : 'السوق المركزي، الخرطوم / بورتسودان';
+  });
 
   // Load state with fallback
   const [staffList, setStaffList] = useState<UserProfile[]>(() => {
@@ -327,6 +336,9 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   }, [dismissedNotificationIds]);
 
   // Persist to localStorage
+  useEffect(() => {
+    localStorage.setItem('hisabati_store_settings', JSON.stringify({ storeName, storePhone, storeAddress, businessType }));
+  }, [storeName, storePhone, storeAddress, businessType]);
   useEffect(() => {
     localStorage.setItem('hisabati_products', JSON.stringify(products));
   }, [products]);

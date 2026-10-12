@@ -36,6 +36,7 @@ export const StaffView: React.FC = () => {
     name: string;
     role: UserRole;
     phone: string;
+    pin: string;
     canViewProfits: boolean;
     canViewCOGS: boolean;
     canEditPrices: boolean;
@@ -48,6 +49,7 @@ export const StaffView: React.FC = () => {
     name: '',
     role: 'cashier',
     phone: '',
+    pin: '',
     canViewProfits: false,
     canViewCOGS: false,
     canEditPrices: false,
@@ -64,6 +66,7 @@ export const StaffView: React.FC = () => {
       name: '',
       role: 'cashier',
       phone: '',
+      pin: '',
       canViewProfits: false,
       canViewCOGS: false,
       canEditPrices: false,
@@ -82,6 +85,7 @@ export const StaffView: React.FC = () => {
       name: staff.name,
       role: staff.role,
       phone: staff.phone,
+      pin: staff.pin || '',
       ...staff.permissions,
     });
     setIsAddEditModalOpen(true);
@@ -100,6 +104,7 @@ export const StaffView: React.FC = () => {
       canProcessReturns: formData.canProcessReturns,
     };
 
+    const cleanPin = (formData.pin || '').replace(/\D/g, '').slice(0, 6);
     if (editingStaff) {
       updateStaffMember({
         ...editingStaff,
@@ -107,6 +112,9 @@ export const StaffView: React.FC = () => {
         role: formData.role,
         phone: formData.phone,
         permissions,
+        ...(cleanPin.length >= 4 ? { pin: cleanPin } : {}),
+        ...(cleanPin.length > 0 && cleanPin.length < 4 ? { pin: editingStaff.pin } : {}),
+        ...(cleanPin.length === 0 ? { pin: undefined } : {}),
       });
     } else {
       addStaffMember({
@@ -114,6 +122,7 @@ export const StaffView: React.FC = () => {
         role: formData.role,
         phone: formData.phone,
         permissions,
+        ...(cleanPin.length >= 4 ? { pin: cleanPin } : {}),
       });
     }
 
@@ -389,6 +398,24 @@ export const StaffView: React.FC = () => {
                     onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
                     className="w-full bg-slate-950 border border-slate-700 rounded-lg p-2 text-white outline-none font-mono"
                   />
+                </div>
+
+                <div>
+                  <label className="text-slate-400 block mb-1">
+                    الرمز السري (4-6 أرقام — اختياري 🔒):
+                  </label>
+                  <input
+                    type="password"
+                    inputMode="numeric"
+                    autoComplete="off"
+                    value={formData.pin}
+                    onChange={(e) => setFormData({ ...formData, pin: e.target.value.replace(/\D/g, '').slice(0, 6) })}
+                    placeholder="اتركه فاضي = دخول بدون رمز"
+                    className="w-full bg-slate-950 border border-slate-700 rounded-lg p-2 text-white outline-none font-mono tracking-widest"
+                  />
+                  <p className="text-[10px] text-slate-500 mt-1">
+                    لو حطيتو: التبديل ليه بطلب الرمز — زي ما الكاشير ما يبقى مالك بضغطة
+                  </p>
                 </div>
 
                 <div className="col-span-2">

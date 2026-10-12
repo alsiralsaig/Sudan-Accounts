@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   Mic,
   Store,
@@ -18,20 +18,35 @@ import {
   VolumeX,
   Percent,
   Wallet,
+  Cloud,
+  CloudUpload,
+  CloudOff,
+  RefreshCw,
+  AlertTriangle,
 } from 'lucide-react';
+import { loadSession, onSyncStatus, type SyncStatus } from '../services/cloudSyncClient';
+import { LoginGate } from './LoginGate';
 import { useApp } from '../context/AppContext';
-import { BusinessType } from '../types';
+import { BusinessType, UserProfile } from '../types';
 import { StockNotificationCenter } from './StockNotificationCenter';
 import { EmailNotificationsModal } from './EmailNotificationsModal';
 import { VoiceAlertSettingsModal } from './VoiceAlertSettingsModal';
 
 interface NavbarProps {
   onOpenVoiceModal: () => void;
+  onOpenCloudModal: () => void;
 }
 
-export const Navbar: React.FC<NavbarProps> = ({ onOpenVoiceModal }) => {
+export const Navbar: React.FC<NavbarProps> = ({ onOpenVoiceModal, onOpenCloudModal }) => {
   const [isEmailModalOpen, setIsEmailModalOpen] = useState(false);
   const [isVoiceAlertSettingsOpen, setIsVoiceAlertSettingsOpen] = useState(false);
+  const [cloudStatus, setCloudStatus] = useState<SyncStatus>({ state: 'unconfigured' });
+  const [switchTarget, setSwitchTarget] = useState<UserProfile | null>(null);
+
+  useEffect(() => {
+    const off = onSyncStatus((s) => setCloudStatus(s));
+    return () => { off(); };
+  }, []);
   const {
     activeTab,
     setActiveTab,
@@ -108,17 +123,20 @@ export const Navbar: React.FC<NavbarProps> = ({ onOpenVoiceModal }) => {
 
             {/* Quick Switch Button */}
             <select
-              aria-label="تبديل المستخدم للتجربة"
+              aria-label="تبديل المستخدم"
               value={currentUser.id}
               onChange={(e) => {
                 const found = staffList.find((u) => u.id === e.target.value);
-                if (found) setCurrentUser(found);
+                if (found) {
+                  if (found.pin && found.pin.length >= 4) setSwitchTarget(found); // محمي برمز
+                  else setCurrentUser(found); // بدون رمز — تبديل مباشر
+                }
               }}
               className="bg-slate-800 border border-slate-700 text-slate-300 rounded px-1.5 py-0.5 text-[11px] outline-none hover:border-slate-600 cursor-pointer"
             >
               {staffList.map((st) => (
                 <option key={st.id} value={st.id}>
-                  تبديل إلى: {st.name} ({st.role === 'owner' ? 'مالك' : st.role === 'cashier' ? 'كاشير' : 'مخزن'})
+                  تبديل إلى: {st.name} ({st.role === 'owner' ? 'مالك' : st.role === 'cashier' ? 'كاشير' : 'مخزن'}){st.pin ? ' 🔒' : ''}
                 </option>
               ))}
             </select>
@@ -446,7 +464,42 @@ export const Navbar: React.FC<NavbarProps> = ({ onOpenVoiceModal }) => {
         >
           فحص الدقة
         </button>
+        {/* زر السحابة — حالة المزامنة */}
+        {(() => {
+          const linked = Boolean(loadSession());
+          const s = cloudStatus.state;
+          const Icon = !linked ? CloudOff : s === 'syncing' ? RefreshCw : s === 'error' || s === 'conflict' ? AlertTriangle : CloudUpload;
+          const color = !linked
+            ? 'text-slate-500 border-slate-700 hover:text-slate-300'
+            : s === 'error' || s === 'conflict'
+            ? 'text-amber-400 border-amber-500/40 animate-pulse'
+            : s === 'syncing'
+            ? 'text-sky-400 border-sky-500/40'
+            : 'text-emerald-400 border-emerald-500/40';
+          const label = !linked ? 'السحابة: محلي بس — اضغط للربط' : s === 'syncing' ? 'بيزامن...' : s === 'error' ? 'مشكلة مزامنة' : s === 'conflict' ? 'تعارض نسخ' : s === 'offline' ? 'أوفلاين — هيتزامن مع النت' : 'متزامن مع السحابة';
+          return (
+            <button
+              onClick={onOpenCloudModal}
+              title={label}
+              aria-label={label}
+              className={`shrink-0 p-1.5 rounded-lg border bg-slate-900 transition-colors ${color}`}
+            >
+              <Icon className={`w-4 h-4 ${s === 'syncing' ? 'animate-spin' : ''}`} />
+            </button>
+          );
+        })()}
       </div>
+
+
+      {/* بوابة التبديل برمز الموظف */}
+      {switchTarget && (
+        <LoginGate
+          targetUser={switchTarget}
+          title={`دخول: ${switchTarget.name}`}
+          onSuccess={(u) => { setCurrentUser(u); setSwitchTarget(null); }}
+          onCancel={() => setSwitchTarget(null)}
+        />
+      )}
 
       {/* Email Notifications Modal */}
       <EmailNotificationsModal

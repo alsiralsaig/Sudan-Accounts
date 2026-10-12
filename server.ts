@@ -8,13 +8,23 @@ import express from 'express';
 import dotenv from 'dotenv';
 import path from 'path';
 import { handleParseSale } from './shared/parseSaleService.js';
+import {
+  registerStore,
+  linkDevice,
+  pushSnapshot,
+  getLatest,
+  listHistory,
+  sessionFromAuthHeader,
+  CloudError,
+} from './shared/cloudService.js';
+import { hasDatabase, dbPing } from './shared/db.js';
 
 dotenv.config();
 
 const app = express();
 const PORT = process.env.PORT ? parseInt(process.env.PORT, 10) : 3000;
 
-app.use(express.json());
+app.use(express.json({ limit: '10mb' })); // لقطات المزامنة السحابية أكبر من JSON الافتراضي
 
 // Health check endpoint
 app.get('/api/health', (req, res) => {
@@ -22,8 +32,87 @@ app.get('/api/health', (req, res) => {
     status: 'ok',
     runtime: 'express',
     hasGeminiKey: Boolean(process.env.GEMINI_API_KEY),
+    hasDatabase: hasDatabase(),
     timestamp: new Date().toISOString(),
   });
+});
+
+/* ═══════════ الروابط السحابية (Neon / Supabase / أي Postgres) ═══════════ */
+
+const cloudGuard = (_req: express.Request, res: express.Response, next: express.NextFunction) => {
+  if (!hasDatabase()) {
+    return res.status(503).json({ error: 'السحابة ما مضبوطة — ضع DATABASE_URL في ملف .env' });
+  }
+  next();
+};
+
+const cloudError = (err: any, res: express.Response) => {
+  if (err instanceof CloudError) return res.status(err.status).json({ error: err.message });
+  console.error('cloud error:', err);
+  return res.status(500).json({ error: 'خطأ في السيرفر — جرّب تاني' });
+};
+
+app.get('/api/cloud/ping', cloudGuard, async (_req, res) => {
+  const result = await dbPing();
+  res.json({ configured: true, ...result });
+});
+
+app.post('/api/cloud/register', cloudGuard, async (req, res) => {
+  try {
+    res.status(201).json(await registerStore({
+      storeName: String(req.body?.storeName || ''),
+      ownerName: String(req.body?.ownerName || ''),
+      email: String(req.body?.email || ''),
+      password: String(req.body?.password || ''),
+    }));
+  } catch (err) { cloudError(err, res); }
+});
+
+app.post('/api/cloud/link', cloudGuard, async (req, res) => {
+  try {
+    res.json(await linkDevice({
+      storeCode: String(req.body?.storeCode || ''),
+      password: String(req.body?.password || ''),
+    }));
+  } catch (err) { cloudError(err, res); }
+});
+
+app.post('/api/cloud/push', cloudGuard, async (req, res) => {
+  try {
+    const session = sessionFromAuthHeader(req.headers?.authorization);
+    if (!req.body?.data) return res.status(400).json({ error: 'data مطلوبة' });
+    res.json(await pushSnapshot({
+      storeId: session.storeId,
+      storeCode: session.storeCode,
+      data: req.body.data,
+      meta: req.body.meta && typeof req.body.meta === 'object' ? req.body.meta : {},
+      clientAt: String(req.body.clientAt || ''),
+      device: String(req.body.device || ''),
+      pushedBy: String(req.body.pushedBy || ''),
+      baseSnapshotAt: req.body.baseSnapshotAt ? String(req.body.baseSnapshotAt) : null,
+    }));
+  } catch (err) { cloudError(err, res); }
+});
+
+app.get('/api/cloud/latest', cloudGuard, async (req, res) => {
+  try {
+    const session = sessionFromAuthHeader(req.headers?.authorization);
+    const latest = await getLatest(session.storeId);
+    if (!latest) return res.json({ hasSnapshot: false });
+    if (req.query.full !== '1' && req.query.full !== 'true') {
+      const { data, ...meta } = latest;
+      return res.json({ hasSnapshot: true, ...meta });
+    }
+    res.json({ hasSnapshot: true, ...latest });
+  } catch (err) { cloudError(err, res); }
+});
+
+app.get('/api/cloud/history', cloudGuard, async (req, res) => {
+  try {
+    const session = sessionFromAuthHeader(req.headers?.authorization);
+    const limit = parseInt(String(req.query.limit || '10'), 10) || 10;
+    res.json({ snapshots: await listHistory(session.storeId, limit) });
+  } catch (err) { cloudError(err, res); }
 });
 
 // Email Notification Dispatcher Endpoints
