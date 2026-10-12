@@ -23,6 +23,7 @@ export const StaffView: React.FC = () => {
     staffList,
     updateStaffMember,
     addStaffMember,
+    deleteStaffMember,
     currentUser,
     setCurrentUser,
     auditLogs,
@@ -313,13 +314,30 @@ export const StaffView: React.FC = () => {
               {/* Actions */}
               <div className="flex items-center justify-end gap-2 pt-1">
                 {currentUser.permissions.canManageStaff && (
-                  <button
-                    onClick={() => handleOpenEdit(staff)}
-                    className="p-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white transition text-xs flex items-center gap-1"
-                  >
-                    <Edit2 className="w-3.5 h-3.5" />
-                    <span>تعديل الصلاحيات</span>
-                  </button>
+                  <>
+                    <button
+                      onClick={() => handleOpenEdit(staff)}
+                      className="p-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white transition text-xs flex items-center gap-1"
+                    >
+                      <Edit2 className="w-3.5 h-3.5" />
+                      <span>تعديل الصلاحيات</span>
+                    </button>
+                    {currentUser.id !== staff.id && (
+                      <button
+                        onClick={() => {
+                          if (confirm(`تشيل ${staff.name} من الموظفين نهائياً؟`)) {
+                            const r = deleteStaffMember(staff.id);
+                            if (!r.ok) alert(r.message);
+                          }
+                        }}
+                        title="حذف الموظف"
+                        className="p-1.5 rounded-lg bg-slate-800 hover:bg-rose-900/60 text-slate-400 hover:text-rose-300 transition text-xs flex items-center gap-1"
+                      >
+                        <Trash2 className="w-3.5 h-3.5" />
+                        <span>حذف</span>
+                      </button>
+                    )}
+                  </>
                 )}
               </div>
             </div>

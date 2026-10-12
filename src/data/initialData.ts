@@ -439,9 +439,9 @@ export const INITIAL_PRODUCTS: Product[] = [
 export const INITIAL_STAFF: UserProfile[] = [
   {
     id: 'user-01',
-    name: 'عثمان السر البشير',
+    name: 'المالك',
     role: 'owner',
-    phone: '0912345678',
+    phone: '',
     permissions: {
       canViewProfits: true,
       canViewCOGS: true,
@@ -451,38 +451,6 @@ export const INITIAL_STAFF: UserProfile[] = [
       canViewAuditLogs: true,
       canManageSettings: true,
       canProcessReturns: true,
-    },
-  },
-  {
-    id: 'user-02',
-    name: 'محمد عوض التاج',
-    role: 'cashier',
-    phone: '0998765432',
-    permissions: {
-      canViewProfits: false, // Hidden strictly
-      canViewCOGS: false, // Hidden strictly
-      canEditPrices: false,
-      canOverrideStock: false,
-      canManageStaff: false,
-      canViewAuditLogs: false,
-      canManageSettings: false,
-      canProcessReturns: true,
-    },
-  },
-  {
-    id: 'user-03',
-    name: 'إبراهيم فضل الله',
-    role: 'storekeeper',
-    phone: '0123456789',
-    permissions: {
-      canViewProfits: false,
-      canViewCOGS: true,
-      canEditPrices: false,
-      canOverrideStock: true,
-      canManageStaff: false,
-      canViewAuditLogs: true,
-      canManageSettings: false,
-      canProcessReturns: false,
     },
   },
 ];

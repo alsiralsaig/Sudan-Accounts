@@ -57,6 +57,7 @@ interface AppContextType {
   staffList: UserProfile[];
   updateStaffMember: (user: UserProfile) => void;
   addStaffMember: (user: Omit<UserProfile, 'id'>) => void;
+  deleteStaffMember: (id: string) => { ok: boolean; message: string };
 
   // Products & Inventory
   products: Product[];
@@ -748,6 +749,20 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       setCurrentUser(updated);
     }
     addAuditLog('تعديل صلاحيات موظف', `تحديث بيانات وصلاحيات الموظف: ${updated.name}`);
+  };
+
+  /** حذف موظف — بحراسة: ما تشيل نفسك، وما تشيل آخر مالك */
+  const deleteStaffMember = (id: string): { ok: boolean; message: string } => {
+    const target = staffList.find((u) => u.id === id);
+    if (!target) return { ok: false, message: 'ما لقيت الموظف' };
+    if (currentUser.id === id) return { ok: false, message: 'ما تقدر تحذف نفسك — بدّل لمستخدم تاني الأول' };
+    const ownersLeft = staffList.filter((u) => u.role === 'owner' && u.id !== id);
+    if (target.role === 'owner' && ownersLeft.length === 0) {
+      return { ok: false, message: 'ما تقدر تحذف آخر مالك — لازم يفضل مالك واحد على الأقل' };
+    }
+    setStaffList((prev) => prev.filter((u) => u.id !== id));
+    addAuditLog('حذف موظف', `حذف الموظف: ${target.name} (${target.role})`);
+    return { ok: true, message: `اتشال ${target.name} من الموظفين` };
   };
 
   const addStaffMember = (newUserData: Omit<UserProfile, 'id'>) => {
@@ -1675,6 +1690,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         staffList,
         updateStaffMember,
         addStaffMember,
+        deleteStaffMember,
         products,
         addProduct,
         updateProduct,
