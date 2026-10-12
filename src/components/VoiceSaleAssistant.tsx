@@ -193,9 +193,9 @@ export const VoiceSaleAssistant: React.FC<VoiceSaleAssistantProps> = ({
   // Quick preset pills
   const presetExamples = [
     'بعت اتنين كيلو سكر وكيلو شاي',
-    '3 رطل زيت صباح ودستة صابون غسيل',
-    'جوال سكر 50 كيلو وباكتين دقيق سيقا',
-    'نص رطل شاي وعلبة صلصة كابو كاش',
+    '3 رطل زيت ودستة صابون',
+    'جوال سكر 50 كيلو وباكتين دقيق',
+    'نص رطل شاي وعلبة صلصة كاش',
     'كرتونة مكرونة وباقي الحساب آجل للعميل عمر',
     'طلب مبهم للتجربة: جيب لي خمسة من داك',
   ];
@@ -337,7 +337,7 @@ export const VoiceSaleAssistant: React.FC<VoiceSaleAssistantProps> = ({
               <textarea
                 value={inputSpeechText}
                 onChange={(e) => setInputSpeechText(e.target.value)}
-                placeholder="تحدث أو اكتب هنا: مثلاً «بعت 3 رطل زيت صباح ودستة صابون وباقي الحساب بنكك»..."
+                placeholder="تحدث أو اكتب هنا: مثلاً «بعت 3 رطل زيت ودستة صابون وباقي الحساب بنكك»..."
                 rows={3}
                 className="w-full bg-slate-900 border border-slate-700/80 rounded-xl p-3 text-sm text-slate-100 placeholder-slate-500 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 outline-none resize-none leading-relaxed"
               />

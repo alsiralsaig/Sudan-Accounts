@@ -682,7 +682,7 @@ export const InventoryView: React.FC = () => {
                     required
                     value={formData.nameAr}
                     onChange={(e) => setFormData({ ...formData, nameAr: e.target.value })}
-                    placeholder="مثال: سكر كنانة أبيض فاخر"
+                    placeholder="اسم الصنف"
                     className="w-full bg-slate-950 border border-slate-700 rounded-lg p-2 text-white outline-none focus:border-emerald-500"
                   />
                 </div>
@@ -805,7 +805,7 @@ export const InventoryView: React.FC = () => {
                     type="text"
                     value={formData.aliasesText}
                     onChange={(e) => setFormData({ ...formData, aliasesText: e.target.value })}
-                    placeholder="مثال: سكر، كنانة، سكر أبيض"
+                    placeholder="مثال: سكر، سكر أبيض، سكر قوالب"
                     className="w-full bg-slate-950 border border-slate-700 rounded-lg p-2 text-white outline-none"
                   />
                 </div>
@@ -955,7 +955,7 @@ export const InventoryView: React.FC = () => {
                   type="text"
                   value={adjustNote}
                   onChange={(e) => setAdjustNote(e.target.value)}
-                  placeholder="مثال: فاتورة توريد شركة كنانة"
+                  placeholder="مثال: فاتورة توريد رقم 115"
                   className="w-full bg-slate-950 border border-slate-700 rounded-lg p-2 text-white outline-none"
                 />
               </div>

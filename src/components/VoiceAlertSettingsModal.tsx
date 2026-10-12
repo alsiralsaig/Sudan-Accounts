@@ -41,7 +41,7 @@ export const VoiceAlertSettingsModal: React.FC<VoiceAlertSettingsModalProps> = (
     setTestPlaying(true);
     let sample = '';
     if (type === 'outOfStock') {
-      sample = 'تنبيه عاجل: لقد نفد مخزون سكر كنانة بالكامل من الرفوف والمخزن! يرجى إعادة الطلب فوراً.';
+      sample = 'تنبيه عاجل: نفد مخزون صنف من أصنافك — يرجى إعادة الطلب فوراً.';
     } else if (type === 'reorder') {
       sample = 'تحذير: صنف زيت طعام يارا وصل إلى حد إعادة الطلب، الرصيد المتبقي خمسة جالون فقط.';
     } else {

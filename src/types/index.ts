@@ -51,7 +51,7 @@ export interface Product {
   allowedUnits: UnitConversion[];
   shelfLocation: string; // الرف أو مكان التخزين (e.g., "رف أ-2", "المخزن الشرقي")
   businessType: BusinessType;
-  aliases: string[]; // Sudanese dialect synonyms (e.g., "سكر كنانة", "شاي أحمر")
+  aliases: string[]; // مرادفات اللهجة السودانية للصنف
   extraFields?: {
     expiryDate?: string;
     batchNumber?: string;

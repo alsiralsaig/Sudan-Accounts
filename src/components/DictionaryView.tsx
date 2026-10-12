@@ -225,7 +225,7 @@ export const DictionaryView: React.FC = () => {
                   required
                   value={newStandard}
                   onChange={(e) => setNewStandard(e.target.value)}
-                  placeholder="مثال: سكر كنانة - وحدة رطل (450 جم)"
+                  placeholder="مثال: رطل سكر - يعادل نص كيلو تقريباً"
                   className="w-full bg-slate-950 border border-slate-700 rounded-lg p-2 text-white outline-none focus:border-emerald-500"
                 />
               </div>

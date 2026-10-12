@@ -171,15 +171,15 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   // Store information
   const [storeName, setStoreName] = useState<string>(() => {
     const saved = localStorage.getItem('hisabati_store_settings');
-    return saved ? (JSON.parse(saved).storeName ?? 'بقالة ومحلات الأمانة الذكية') : 'بقالة ومحلات الأمانة الذكية';
+    return saved ? (JSON.parse(saved).storeName ?? 'متجري') : 'متجري';
   });
   const [storePhone, setStorePhone] = useState<string>(() => {
     const saved = localStorage.getItem('hisabati_store_settings');
-    return saved ? (JSON.parse(saved).storePhone ?? '0912345678 - 0123456789') : '0912345678 - 0123456789';
+    return saved ? (JSON.parse(saved).storePhone ?? '') : '';
   });
   const [storeAddress, setStoreAddress] = useState<string>(() => {
     const saved = localStorage.getItem('hisabati_store_settings');
-    return saved ? (JSON.parse(saved).storeAddress ?? 'السوق المركزي، الخرطوم / بورتسودان') : 'السوق المركزي، الخرطوم / بورتسودان';
+    return saved ? (JSON.parse(saved).storeAddress ?? '') : '';
   });
 
   // Load state with fallback
@@ -264,13 +264,13 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     if (saved) return JSON.parse(saved);
     return {
       enabled: true,
-      managerEmail: 'alsiralsaig@gmail.com',
+      managerEmail: '',
       additionalEmails: [],
       dailySummaryEnabled: true,
       dailySummaryTime: '22:00',
       lowStockAlertsEnabled: true,
       includeProfitInSummary: true,
-      lastDailyReportSent: '2026-10-10 21:00',
+      lastDailyReportSent: undefined,
       lastLowStockAlertSent: undefined,
     };
   });
@@ -278,28 +278,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const [sentEmailLogs, setSentEmailLogs] = useState<SentEmailLog[]>(() => {
     const saved = localStorage.getItem('hisabati_email_logs');
     if (saved) return JSON.parse(saved);
-    return [
-      {
-        id: 'mail-01',
-        timestamp: '2026-10-10 21:00',
-        recipient: 'alsiralsaig@gmail.com',
-        subject: '📊 التقرير اليومي لملخص المبيعات - حساباتي السودان',
-        type: 'daily_summary',
-        status: 'delivered',
-        summaryText: 'إجمالي المبيعات: 1,350,000 ج.س | عدد الفواتير: 4 | صافي الأرباح: 227,000 ج.س',
-        htmlPreview: '<div dir="rtl" style="font-family: Cairo, Tahoma, sans-serif; padding: 20px; background: #0f172a; color: #f8fafc; border-radius: 12px;"><h3 style="color: #10b981;">📊 تقرير ملخص المبيعات اليومي - حساباتي السودان 🇸🇩</h3><p style="color:#94a3b8;">إجمالي المبيعات: 1,350,000 ج.س | صافي الربح الفعلي: 227,000 ج.س</p></div>',
-      },
-      {
-        id: 'mail-02',
-        timestamp: '2026-10-10 18:30',
-        recipient: 'alsiralsaig@gmail.com',
-        subject: '⚠️ تنبيه عاجل: أصناف المخزون بلغت مستوى إعادة الطلب',
-        type: 'low_stock_alert',
-        status: 'delivered',
-        summaryText: 'تنبيه نقص المخزون لـ 3 أصناف: سكر كنانة، زيت طعام يارا، شاي الغزالتين',
-        htmlPreview: '<div dir="rtl" style="font-family: Cairo, Tahoma, sans-serif; padding: 20px; background: #0f172a; color: #f8fafc; border-radius: 12px;"><h3 style="color: #f59e0b;">⚠️ تنبيه نواقص المخزون ومستوى إعادة الطلب 🇸🇩</h3><p style="color:#94a3b8;">أصناف قاربت على النفاد وتحتاج لتوريد عاجل من الموردين.</p></div>',
-      },
-    ];
+    return [];
   });
 
   // Value Added Tax (VAT / ضريبة القيمة المضافة) State
@@ -1651,7 +1630,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     setDismissedNotificationIds([]);
     setVatSettingsState(DEFAULT_VAT_SETTINGS);
     localStorage.clear();
-    addAuditLog('إعادة ضبط البيانات', 'تمت استعادة البيانات التجريبية الافتراضية.');
+    addAuditLog('إعادة ضبط البيانات', 'تم مسح كل البيانات — البدء من جديد.');
   };
 
   // VAT and Tax calculation methods

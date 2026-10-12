@@ -36,8 +36,8 @@ export const LandingPageView: React.FC<LandingPageViewProps> = ({
     total: number;
   }>({
     items: [
-      { name: 'سكر كنانة أبيض فاخر', qty: 2, unit: 'كيلو', price: 3000 },
-      { name: 'شاي الغزالتين أسود ممتاز', qty: 1, unit: 'علبة', price: 1100 },
+      { name: 'صنف بضاعة', qty: 2, unit: 'كيلو', price: 3000 },
+      { name: 'صنف بضاعة', qty: 1, unit: 'علبة', price: 1100 },
     ],
     total: 4100,
   });
@@ -49,30 +49,30 @@ export const LandingPageView: React.FC<LandingPageViewProps> = ({
     if (phrase.includes('سكر') && phrase.includes('شاي')) {
       setDemoParsedResult({
         items: [
-          { name: 'سكر كنانة أبيض فاخر', qty: 2, unit: 'كيلو', price: 3000 },
-          { name: 'شاي الغزالتين أسود ممتاز', qty: 1, unit: 'علبة', price: 1100 },
+          { name: 'صنف بضاعة', qty: 2, unit: 'كيلو', price: 3000 },
+          { name: 'صنف بضاعة', qty: 1, unit: 'علبة', price: 1100 },
         ],
         total: 4100,
       });
     } else if (phrase.includes('زيت') && phrase.includes('صابون')) {
       setDemoParsedResult({
         items: [
-          { name: 'زيت صباح دوار الشمس', qty: 3, unit: 'رطل', price: 3900 },
-          { name: 'صابون الغسيل فن الفاخر', qty: 1, unit: 'دستة', price: 5000 },
+          { name: 'صنف بضاعة', qty: 3, unit: 'رطل', price: 3900 },
+          { name: 'صنف بضاعة', qty: 1, unit: 'دستة', price: 5000 },
         ],
         total: 8900,
       });
-    } else if (phrase.includes('سيقا')) {
+    } else if (phrase.includes('باكت')) {
       setDemoParsedResult({
         items: [
-          { name: 'دقيق سيقا فاخر', qty: 2, unit: 'باكت كبير', price: 25000 },
-          { name: 'سكر كنانة أبيض فاخر', qty: 1, unit: 'جوال 50 كجم', price: 70000 },
+          { name: 'صنف بضاعة', qty: 2, unit: 'باكت كبير', price: 25000 },
+          { name: 'صنف بضاعة', qty: 1, unit: 'جوال 50 كجم', price: 70000 },
         ],
         total: 95000,
       });
     } else {
       setDemoParsedResult({
-        items: [{ name: 'سكر كنانة أبيض فاخر', qty: 1, unit: 'كيلو', price: 1500 }],
+        items: [{ name: 'صنف بضاعة', qty: 1, unit: 'كيلو', price: 1500 }],
         total: 1500,
       });
     }
@@ -293,16 +293,16 @@ export const LandingPageView: React.FC<LandingPageViewProps> = ({
               «بعت اتنين كيلو سكر وكيلو شاي»
             </button>
             <button
-              onClick={() => handleSimulatePlayground('3 رطل زيت صباح ودستة صابون غسيل')}
+              onClick={() => handleSimulatePlayground('3 رطل زيت ودستة صابون')}
               className="text-xs bg-slate-950 border border-slate-700 hover:border-emerald-500 text-slate-200 px-3 py-1.5 rounded-xl transition"
             >
-              «3 رطل زيت صباح ودستة صابون غسيل»
+              «3 رطل زيت ودستة صابون»
             </button>
             <button
-              onClick={() => handleSimulatePlayground('باكت دقيق سيقا وجوال سكر')}
+              onClick={() => handleSimulatePlayground('باكت دقيق وجوال سكر')}
               className="text-xs bg-slate-950 border border-slate-700 hover:border-emerald-500 text-slate-200 px-3 py-1.5 rounded-xl transition"
             >
-              «باكت دقيق سيقا وجوال سكر»
+              «باكت دقيق وجوال سكر»
             </button>
           </div>
 

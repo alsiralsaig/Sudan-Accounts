@@ -259,7 +259,7 @@ export const PosView: React.FC<PosViewProps> = ({ onOpenVoiceModal, onViewInvoic
               <Search className="w-4 h-4 text-slate-400 absolute right-3 top-3" />
               <input
                 type="text"
-                placeholder="ابحث بالاسم، الباركود، أو المصطلح الشعبي (مثال: سكر، شاي، سيقا)..."
+                placeholder="ابحث بالاسم، الباركود، أو المصطلح الشعبي (مثال: سكر، شاي، دقيق)..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 onKeyDown={(e) => {
